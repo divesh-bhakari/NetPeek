@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import os
 from packet_parser import parse_pcap
@@ -7,23 +7,21 @@ from db_config import get_db_connection
 # --- Initialize Flask app ---
 app = Flask(__name__, template_folder='templates')
 CORS(app)
+app.config['TEMPLATES_AUTO_RELOAD'] = True  # Force Flask to reload templates
 
 # --- Upload folder ---
 UPLOAD_FOLDER = os.path.join("backend", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 
 # --- Serve Home page ---
 @app.route('/')
 def home():
     return render_template('index.html')
 
-
 # --- Serve Results page ---
 @app.route('/result.html')
 def result_page():
     return render_template('result.html')
-
 
 # --- Upload route ---
 @app.route('/upload', methods=['POST'])
@@ -42,7 +40,7 @@ def upload_pcap():
         # Parse PCAP and store into MySQL
         result = parse_pcap(filepath)
 
-        # ✅ Return success response
+        # Return success response
         return jsonify({
             'message': 'File processed successfully',
             'summary': result
@@ -52,8 +50,7 @@ def upload_pcap():
         print(f"[!] Error in /upload route: {e}")
         return jsonify({'error': str(e)}), 500
 
-
-# --- Results Data API (used by result.html to fetch data) ---
+# --- Results Data API (used by result.html) ---
 @app.route('/results', methods=['GET'])
 def get_results():
     try:
@@ -128,7 +125,6 @@ def get_results():
     except Exception as e:
         print(f"[!] Error in /results route: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 # --- Run Flask ---
 if __name__ == '__main__':

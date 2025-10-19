@@ -2,101 +2,47 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>NetPeek | Sleek Packet Analyzer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NetPeek | Upload PCAP</title>
 <style>
-/* --- CSS Start --- */
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f6f8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-}
-
-.container {
-  text-align: center;
-  background: #fff;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  width: 400px;
-}
-
-h1 { margin-bottom: 10px; color: #333; }
-
-.upload-box { margin: 20px 0; }
-
-input[type="file"] { display: block; margin: 10px auto; }
-
-button {
-  padding: 10px 20px;
-  background-color: #0f62fe;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-button:hover { background-color: #0353e9; }
-
-.progress-container {
-  margin-top: 20px;
-  background: #e0e0e0;
-  border-radius: 6px;
-  height: 20px;
-  width: 100%;
-  position: relative;
-}
-
-.progress-bar {
-  background: #0f62fe;
-  height: 100%;
-  width: 0%;
-  border-radius: 6px;
-}
-
-#progressText {
-  position: absolute;
-  width: 100%;
-  text-align: center;
-  top: 0;
-  line-height: 20px;
-  font-size: 12px;
-  color: #fff;
-}
-
-#resultMessage {
-  margin-top: 20px;
-  font-weight: bold;
-  color: #333;
-}
-/* --- CSS End --- */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg,#0f2027,#203a43,#2c5364); color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0; }
+  h1 { font-size:2rem; margin-bottom:10px; }
+  p { opacity:0.8; margin-bottom:20px; }
+  .card { background:rgba(255,255,255,0.1); border-radius:15px; padding:30px 40px; width:400px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+  input[type="file"] { display:none; }
+  label { background:#00b4db; color:white; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:600; transition:background 0.3s; }
+  label:hover { background:#0083b0; }
+  button { background:#1cb5e0; border:none; color:white; font-weight:600; padding:10px 25px; border-radius:8px; cursor:pointer; margin-top:15px; transition:background 0.3s; }
+  button:hover { background:#00a0c6; }
+  #progressContainer { width:100%; height:10px; background:rgba(255,255,255,0.2); border-radius:5px; overflow:hidden; margin-top:20px; display:none; }
+  #progressBar { height:100%; width:0%; background:#00ffcc; transition:width 0.4s; }
+  #progressText { margin-top:10px; font-size:14px; opacity:0.9; }
+  #resultMessage { margin-top:20px; font-weight:500; }
+  .view-results { margin-top:20px; background:#22c55e; }
+  .view-results:hover { background:#16a34a; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>NetPeek Packet Capture Analyzer</h1>
-  <p>Upload your PCAP/PCAPNG file to analyze network traffic.</p>
+<div class="card">
+  <h1>NetPeek</h1>
+  <p>Analyze your PCAP files with AI-powered insights</p>
 
-  <div class="upload-box">
-    <input type="file" id="fileInput" accept=".pcap,.pcapng">
-    <button id="uploadBtn">Upload & Scan</button>
+  <input type="file" id="fileInput" accept=".pcap,.pcapng">
+  <label for="fileInput">Choose File</label><br>
+
+  <button id="uploadBtn">Upload & Scan</button>
+
+  <div id="progressContainer">
+    <div id="progressBar"></div>
   </div>
-
-  <div class="progress-container" id="progressContainer" style="display:none;">
-    <div class="progress-bar" id="progressBar"></div>
-    <span id="progressText">0%</span>
-  </div>
-
+  <div id="progressText"></div>
   <div id="resultMessage"></div>
+
+  <button class="view-results" onclick="window.location.href='/result.html'">View Results</button>
 </div>
 
 <script>
-/* --- JS Start --- */
 const fileInput = document.getElementById('fileInput');
 const uploadBtn = document.getElementById('uploadBtn');
 const progressContainer = document.getElementById('progressContainer');
@@ -116,25 +62,23 @@ uploadBtn.addEventListener('click', () => {
   progressText.innerText = "0%";
   resultMessage.innerText = "";
 
-  fetch("http://127.0.0.1:5000/upload", {
-    method: "POST",
-    body: formData
-  }).then(async response => {
-    const data = await response.json();
-    if (response.ok) {
-      resultMessage.innerHTML = `✅ ${data.message}<br>Total Packets Parsed: ${data.summary.packets_parsed}`;
-    } else {
-      resultMessage.innerHTML = `❌ Error: ${data.error}`;
-    }
-    progressBar.style.width = "100%";
-    progressText.innerText = "100%";
-  }).catch(err => {
-    resultMessage.innerHTML = `❌ Error: ${err}`;
-    progressBar.style.width = "100%";
-    progressText.innerText = "100%";
-  });
+  fetch("/upload", { method:"POST", body:formData })
+    .then(async response => {
+      const data = await response.json();
+      progressBar.style.width = "100%";
+      progressText.innerText = "100%";
+      if (response.ok) {
+        resultMessage.innerHTML = `✅ ${data.message}<br>Total Packets Parsed: ${data.summary.packets_parsed}`;
+      } else {
+        resultMessage.innerHTML = `❌ Error: ${data.error}`;
+      }
+    })
+    .catch(err => {
+      resultMessage.innerHTML = `❌ Error: ${err}`;
+      progressBar.style.width = "100%";
+      progressText.innerText = "100%";
+    });
 });
-/* --- JS End --- */
 </script>
 </body>
 </html>
