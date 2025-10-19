@@ -1,21 +1,29 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 import os
 from packet_parser import parse_pcap
 from db_config import get_db_connection
 
 # --- Initialize Flask app ---
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 CORS(app)
 
 # --- Upload folder ---
 UPLOAD_FOLDER = os.path.join("backend", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# --- Home page ---
+
+# --- Serve Home page ---
 @app.route('/')
 def home():
     return render_template('index.html')
+
+
+# --- Serve Results page ---
+@app.route('/result.html')
+def result_page():
+    return render_template('result.html')
+
 
 # --- Upload route ---
 @app.route('/upload', methods=['POST'])
@@ -34,6 +42,7 @@ def upload_pcap():
         # Parse PCAP and store into MySQL
         result = parse_pcap(filepath)
 
+        # ✅ Return success response
         return jsonify({
             'message': 'File processed successfully',
             'summary': result
@@ -43,7 +52,8 @@ def upload_pcap():
         print(f"[!] Error in /upload route: {e}")
         return jsonify({'error': str(e)}), 500
 
-# --- Results route ---
+
+# --- Results Data API (used by result.html to fetch data) ---
 @app.route('/results', methods=['GET'])
 def get_results():
     try:
@@ -82,7 +92,7 @@ def get_results():
         """)
         top_dst_ips = cursor.fetchall()
 
-        # Top 10 Ports (src or dst)
+        # Top 10 Ports
         cursor.execute("""
             SELECT COALESCE(src_port,dst_port) as port, COUNT(*) as count
             FROM packets
@@ -92,7 +102,7 @@ def get_results():
         """)
         top_ports = cursor.fetchall()
 
-        # Top 10 Source-Destination pairs
+        # Top 10 IP Pairs
         cursor.execute("""
             SELECT CONCAT(src_ip,' -> ',dst_ip) as pair, COUNT(*) as count
             FROM packets
@@ -118,6 +128,7 @@ def get_results():
     except Exception as e:
         print(f"[!] Error in /results route: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 # --- Run Flask ---
 if __name__ == '__main__':
