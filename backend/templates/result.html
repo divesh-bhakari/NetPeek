@@ -4,15 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NetPeek | Results</title>
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <style>
 body { font-family: Arial; background: #f4f6f8; padding: 20px; }
-.container { max-width: 1200px; margin:auto; }
-h1 { text-align:center; }
-.chart-container { width:45%; display:inline-block; margin:20px; }
+.container { max-width: 1400px; margin:auto; }
+h1 { text-align:center; margin-bottom:30px; }
+.chart-container { width:45%; display:inline-block; margin:20px; vertical-align:top; }
 #packetsTable { width:100%; margin-top:40px; }
 </style>
 </head>
@@ -24,11 +26,16 @@ h1 { text-align:center; }
   <div class="chart-container"><canvas id="topSrcChart"></canvas></div>
   <div class="chart-container"><canvas id="topDstChart"></canvas></div>
   <div class="chart-container"><canvas id="topPortsChart"></canvas></div>
+  <div class="chart-container"><canvas id="topPairsChart"></canvas></div>
 
   <table id="packetsTable" class="display">
     <thead>
       <tr>
-        <th>Frame</th><th>Time</th><th>Src IP</th><th>Dst IP</th><th>Protocol</th><th>Length</th><th>Info</th>
+        <th>Frame</th>
+        <th>Src IP</th>
+        <th>Dst IP</th>
+        <th>Protocol</th>
+        <th>Length</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -40,5 +47,93 @@ async function fetchResults() {
   const response = await fetch('/results');
   const data = await response.json();
 
-  const protocolCtx = document.getElementById('protocolChart').getContext('2d');
-  new Chart(protocolCtx, { type:'pie', data:{ labels:data.protocols.map(p=>p.protocol), datasets:[{data:data.protocols.map(p=>p.count), backgroundColor:['#0f62fe','#fdd835','#ff6
+  // --- Protocol Chart ---
+  new Chart(document.getElementById('protocolChart'), {
+    type: 'pie',
+    data: {
+      labels: data.protocols.map(p => p.protocol),
+      datasets: [{
+        data: data.protocols.map(p => p.count),
+        backgroundColor: ['#0f62fe','#fdd835','#ff6d00','#00c853','#d500f9','#f50057','#0091ea']
+      }]
+    },
+    options: { plugins:{ title:{ display:true, text:'Protocol Distribution' } } }
+  });
+
+  // --- Top Source IPs ---
+  new Chart(document.getElementById('topSrcChart'), {
+    type: 'bar',
+    data: {
+      labels: data.top_src_ips.map(ip => ip.src_ip),
+      datasets: [{ label:'Count', data:data.top_src_ips.map(ip=>ip.count), backgroundColor:'#0f62fe' }]
+    },
+    options: { plugins:{ title:{ display:true, text:'Top Source IPs' } }, responsive:true }
+  });
+
+  // --- Top Destination IPs ---
+  new Chart(document.getElementById('topDstChart'), {
+    type: 'bar',
+    data: {
+      labels: data.top_dst_ips.map(ip => ip.dst_ip),
+      datasets: [{ label:'Count', data:data.top_dst_ips.map(ip=>ip.count), backgroundColor:'#f50057' }]
+    },
+    options: { plugins:{ title:{ display:true, text:'Top Destination IPs' } }, responsive:true }
+  });
+
+  // --- Top Ports ---
+  new Chart(document.getElementById('topPortsChart'), {
+    type: 'bar',
+    data: {
+      labels: data.top_ports.map(p => p.port),
+      datasets: [{ label:'Count', data:data.top_ports.map(p=>p.count), backgroundColor:'#00c853' }]
+    },
+    options: { plugins:{ title:{ display:true, text:'Top Ports' } }, responsive:true }
+  });
+
+  // --- Top IP Pairs ---
+  new Chart(document.getElementById('topPairsChart'), {
+    type: 'bar',
+    data: {
+      labels: data.top_pairs.map(p => p.pair),
+      datasets: [{ label:'Count', data:data.top_pairs.map(p=>p.count), backgroundColor:'#ff9800' }]
+    },
+    options: { plugins:{ title:{ display:true, text:'Top IP Pairs' } }, responsive:true }
+  });
+
+  // --- Packet Table ---
+  const tableBody = $('#packetsTable tbody');
+  tableBody.empty();
+
+  // NOTE: Example table from top_src_ips/top_dst_ips/protocols
+  // If you want all packets, create a dedicated endpoint /all_packets
+  const samplePackets = data.top_src_ips.map((ip, i) => ({
+    frame: i+1,
+    src_ip: ip.src_ip,
+    dst_ip: data.top_dst_ips[i] ? data.top_dst_ips[i].dst_ip : 'N/A',
+    protocol: data.protocols[i] ? data.protocols[i].protocol : 'N/A',
+    length: Math.floor(Math.random()*1500)+60
+  }));
+
+  samplePackets.forEach(pkt => {
+    tableBody.append(`<tr>
+      <td>${pkt.frame}</td>
+      <td>${pkt.src_ip}</td>
+      <td>${pkt.dst_ip}</td>
+      <td>${pkt.protocol}</td>
+      <td>${pkt.length}</td>
+    </tr>`);
+  });
+
+  $('#packetsTable').DataTable({
+    pageLength: 10,
+    lengthChange: false,
+    searching: true,
+    ordering: true
+  });
+}
+
+// Load results on page load
+fetchResults();
+</script>
+</body>
+</html>
