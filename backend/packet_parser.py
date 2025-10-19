@@ -4,10 +4,9 @@ from db_config import get_db_connection
 from datetime import datetime
 
 def parse_pcap(file_path):
-    # ✅ Fix for asyncio bug on Python 3.11+
+    # Fix asyncio issue on Python 3.11+
     asyncio.set_event_loop(asyncio.new_event_loop())
 
-    # Read capture with summaries for speed
     cap = pyshark.FileCapture(file_path, only_summaries=False)
     connection = get_db_connection()
     cursor = connection.cursor()
