@@ -1,29 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NetPeek | Upload PCAP</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetPeek | Upload PCAP</title>
+<style>
+/* --- CSS Start --- */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  text-align: center;
+  background: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  width: 400px;
+}
+
+h1 { margin-bottom: 10px; color: #333; }
+
+.upload-box { margin: 20px 0; }
+
+input[type="file"] { display: block; margin: 10px auto; }
+
+button {
+  padding: 10px 20px;
+  background-color: #0f62fe;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover { background-color: #0353e9; }
+
+.progress-container {
+  margin-top: 20px;
+  background: #e0e0e0;
+  border-radius: 6px;
+  height: 20px;
+  width: 100%;
+  position: relative;
+}
+
+.progress-bar {
+  background: #0f62fe;
+  height: 100%;
+  width: 0%;
+  border-radius: 6px;
+}
+
+#progressText {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 0;
+  line-height: 20px;
+  font-size: 12px;
+  color: #fff;
+}
+
+#resultMessage {
+  margin-top: 20px;
+  font-weight: bold;
+  color: #333;
+}
+/* --- CSS End --- */
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>NetPeek Packet Capture Analyzer</h1>
-    <p>Upload your PCAP/PCAPNG file to analyze network traffic.</p>
+<div class="container">
+  <h1>NetPeek Packet Capture Analyzer</h1>
+  <p>Upload your PCAP/PCAPNG file to analyze network traffic.</p>
 
-    <div class="upload-box">
-      <input type="file" id="fileInput" accept=".pcap,.pcapng">
-      <button id="uploadBtn">Upload & Scan</button>
-    </div>
-
-    <div class="progress-container" id="progressContainer" style="display:none;">
-      <div class="progress-bar" id="progressBar"></div>
-      <span id="progressText">0%</span>
-    </div>
-
-    <div id="resultMessage"></div>
+  <div class="upload-box">
+    <input type="file" id="fileInput" accept=".pcap,.pcapng">
+    <button id="uploadBtn">Upload & Scan</button>
   </div>
 
-  <script src="script.js"></script>
+  <div class="progress-container" id="progressContainer" style="display:none;">
+    <div class="progress-bar" id="progressBar"></div>
+    <span id="progressText">0%</span>
+  </div>
+
+  <div id="resultMessage"></div>
+</div>
+
+<script>
+/* --- JS Start --- */
+const fileInput = document.getElementById('fileInput');
+const uploadBtn = document.getElementById('uploadBtn');
+const progressContainer = document.getElementById('progressContainer');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+const resultMessage = document.getElementById('resultMessage');
+
+uploadBtn.addEventListener('click', () => {
+  const file = fileInput.files[0];
+  if (!file) { alert("Please select a file first!"); return; }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  progressContainer.style.display = "block";
+  progressBar.style.width = "0%";
+  progressText.innerText = "0%";
+  resultMessage.innerText = "";
+
+  fetch("http://127.0.0.1:5000/upload", {
+    method: "POST",
+    body: formData
+  }).then(async response => {
+    const data = await response.json();
+    if (response.ok) {
+      resultMessage.innerHTML = `✅ ${data.message}<br>Total Packets Parsed: ${data.summary.packets_parsed}`;
+    } else {
+      resultMessage.innerHTML = `❌ Error: ${data.error}`;
+    }
+    progressBar.style.width = "100%";
+    progressText.innerText = "100%";
+  }).catch(err => {
+    resultMessage.innerHTML = `❌ Error: ${err}`;
+    progressBar.style.width = "100%";
+    progressText.innerText = "100%";
+  });
+});
+/* --- JS End --- */
+</script>
 </body>
 </html>
