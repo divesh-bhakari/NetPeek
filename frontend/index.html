@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetPeek | Upload PCAP</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>NetPeek Packet Capture Analyzer</h1>
+    <p>Upload your PCAP/PCAPNG file to analyze network traffic.</p>
+
+    <div class="upload-box">
+      <input type="file" id="fileInput" accept=".pcap,.pcapng">
+      <button id="uploadBtn">Upload & Scan</button>
+    </div>
+
+    <div class="progress-container" id="progressContainer" style="display:none;">
+      <div class="progress-bar" id="progressBar"></div>
+      <span id="progressText">0%</span>
+    </div>
+
+    <div id="resultMessage"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

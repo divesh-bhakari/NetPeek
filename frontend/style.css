@@ -1,0 +1,78 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  text-align: center;
+  background: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  width: 400px;
+}
+
+h1 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.upload-box {
+  margin: 20px 0;
+}
+
+input[type="file"] {
+  display: block;
+  margin: 10px auto;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #0f62fe;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #0353e9;
+}
+
+.progress-container {
+  margin-top: 20px;
+  background: #e0e0e0;
+  border-radius: 6px;
+  height: 20px;
+  width: 100%;
+  position: relative;
+}
+
+.progress-bar {
+  background: #0f62fe;
+  height: 100%;
+  width: 0%;
+  border-radius: 6px;
+}
+
+#progressText {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 0;
+  line-height: 20px;
+  font-size: 12px;
+  color: #fff;
+}
+
+#resultMessage {
+  margin-top: 20px;
+  font-weight: bold;
+  color: #333;
+}
