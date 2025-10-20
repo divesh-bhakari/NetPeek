@@ -211,7 +211,6 @@ async function fetchResults() {
         </tr>`);
     });
   } else {
-    // fallback if backend doesn't return all packets
     let packets = data.top_src_ips.map((ip, i) => ({
         src_ip: ip.src_ip,
         dst_ip: data.top_dst_ips[i] ? data.top_dst_ips[i].dst_ip : 'N/A',
@@ -229,16 +228,18 @@ async function fetchResults() {
     });
   }
 
+  // --- DataTable with proper Next/Previous pagination ---
+  if ($.fn.DataTable.isDataTable('#packetsTable')) {
+      $('#packetsTable').DataTable().clear().destroy();
+  }
+
   $('#packetsTable').DataTable({
-    pageLength: 10,
+    pageLength: 10,       // 10 packets per page
     lengthChange: false,
     searching: false,
     ordering: true,
     language: {
-      paginate: {
-        previous: 'Previous',
-        next: 'Next'
-      }
+        paginate: { previous: 'Previous', next: 'Next' }
     }
   });
 }
