@@ -109,6 +109,14 @@ def get_results():
         """)
         top_pairs = cursor.fetchall()
 
+        # --- Fetch all packets for charts ---
+        cursor.execute("""
+            SELECT src_ip, dst_ip, protocol, length, timestamp
+            FROM packets
+            ORDER BY id ASC
+        """)
+        all_packets = cursor.fetchall()
+
         cursor.close()
         connection.close()
 
@@ -119,7 +127,8 @@ def get_results():
             "top_src_ips": top_src_ips,
             "top_dst_ips": top_dst_ips,
             "top_ports": top_ports,
-            "top_pairs": top_pairs
+            "top_pairs": top_pairs,
+            "all_packets": all_packets
         })
 
     except Exception as e:

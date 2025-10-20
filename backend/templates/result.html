@@ -6,10 +6,7 @@
 <title>NetPeek | Results</title>
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- DataTables -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -40,45 +37,15 @@ h1 {
     border-radius: 10px;
     box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
 }
-/* Pie chart container */
 .pie-container {
     max-width: 90%;
-    margin: auto;
+    margin: 20px auto;
     padding: 20px;
     text-align: center;
 }
-#protocolChart {
+#protocolChart, #extraPieChart {
     max-width: 400px;
     margin: auto;
-}
-#packetsTable {
-    width: 100%;
-    margin-top: 40px;
-    background: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
-}
-
-/* Go to Top button */
-#topBtn {
-    display: none;
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
-    z-index: 99;
-    font-size: 16px;
-    border: none;
-    outline: none;
-    background-color: #0f62fe;
-    color: white;
-    cursor: pointer;
-    padding: 12px 18px;
-    border-radius: 50px;
-    box-shadow: 0px 3px 8px rgba(0,0,0,0.2);
-}
-#topBtn:hover {
-    background-color: #0053a0;
 }
 </style>
 </head>
@@ -86,9 +53,14 @@ h1 {
 <div class="container">
   <h1>NetPeek Analysis Results</h1>
 
-  <!-- Pie chart -->
+  <!-- Existing Protocol Pie Chart -->
   <div class="pie-container">
       <canvas id="protocolChart"></canvas>
+  </div>
+
+  <!-- New Additional Pie Chart -->
+  <div class="pie-container">
+      <canvas id="extraPieChart"></canvas>
   </div>
 
   <!-- Bar charts -->
@@ -99,44 +71,20 @@ h1 {
     <div class="chart-container" style="flex: 2 1 700px; height: 300px;"><canvas id="topPairsChart"></canvas></div>
   </div>
 
-  <!-- Data table -->
-  <table id="packetsTable" class="display">
-    <thead>
-      <tr>
-        <th>Frame</th>
-        <th>Src IP</th>
-        <th>Dst IP</th>
-        <th>Protocol</th>
-        <th>Length</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- New Chart Types -->
+  <div class="charts-row">
+    <div class="chart-container"><canvas id="packetSizeLine"></canvas></div>
+    <div class="chart-container"><canvas id="protocolRadar"></canvas></div>
+    <div class="chart-container"><canvas id="timeScatter"></canvas></div>
+  </div>
 </div>
 
-<!-- Go to Top Button -->
-<button id="topBtn" title="Go to top">Top</button>
-
 <script>
-// Show/hide "Go to Top" button
-window.onscroll = function() { scrollFunction(); };
-function scrollFunction() {
-    const topBtn = document.getElementById("topBtn");
-    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
-        topBtn.style.display = "block";
-    } else {
-        topBtn.style.display = "none";
-    }
-}
-document.getElementById("topBtn").onclick = function() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
 async function fetchResults() {
   const response = await fetch('/results');
   const data = await response.json();
 
-  // --- Protocol Pie Chart ---
+  // --- Existing Protocol Pie Chart ---
   new Chart(document.getElementById('protocolChart'), {
     type: 'pie',
     data: {
@@ -152,99 +100,100 @@ async function fetchResults() {
     }
   });
 
-  // --- Top Source IPs ---
+  // --- Additional Pie Chart: Top 10 Ports Distribution ---
+  new Chart(document.getElementById('extraPieChart'), {
+    type: 'pie',
+    data: {
+      labels: data.top_ports.map(p => p.port),
+      datasets: [{ 
+        data: data.top_ports.map(p=>p.count), 
+        backgroundColor: ['#0f62fe','#fdd835','#ff6d00','#00c853','#d500f9','#f50057','#0091ea','#795548','#9c27b0','#607d8b'] 
+      }]
+    },
+    options: {
+      plugins: { title:{ display:true, text:'Top Ports Distribution', font:{size:18} } },
+      responsive:true
+    }
+  });
+
+  // --- Bar Charts ---
   new Chart(document.getElementById('topSrcChart'), {
     type: 'bar',
-    data: {
-      labels: data.top_src_ips.map(ip => ip.src_ip),
-      datasets: [{ label:'Count', data:data.top_src_ips.map(ip=>ip.count), backgroundColor:'#0f62fe' }]
-    },
+    data: { labels: data.top_src_ips.map(ip => ip.src_ip), datasets: [{ label:'Count', data:data.top_src_ips.map(ip=>ip.count), backgroundColor:'#0f62fe' }]},
     options: { plugins:{ title:{ display:true, text:'Top Source IPs' } }, responsive:true }
   });
 
-  // --- Top Destination IPs ---
   new Chart(document.getElementById('topDstChart'), {
     type: 'bar',
-    data: {
-      labels: data.top_dst_ips.map(ip => ip.dst_ip),
-      datasets: [{ label:'Count', data:data.top_dst_ips.map(ip=>ip.count), backgroundColor:'#f50057' }]
-    },
+    data: { labels: data.top_dst_ips.map(ip => ip.dst_ip), datasets: [{ label:'Count', data:data.top_dst_ips.map(ip=>ip.count), backgroundColor:'#f50057' }]},
     options: { plugins:{ title:{ display:true, text:'Top Destination IPs' } }, responsive:true }
   });
 
-  // --- Top Ports ---
   new Chart(document.getElementById('topPortsChart'), {
     type: 'bar',
-    data: {
-      labels: data.top_ports.map(p => p.port),
-      datasets: [{ label:'Count', data:data.top_ports.map(p=>p.count), backgroundColor:'#00c853' }]
-    },
+    data: { labels: data.top_ports.map(p => p.port), datasets: [{ label:'Count', data:data.top_ports.map(p=>p.count), backgroundColor:'#00c853' }]},
     options: { plugins:{ title:{ display:true, text:'Top Ports' } }, responsive:true }
   });
 
-  // --- Top IP Pairs (Expanded Horizontally) ---
   new Chart(document.getElementById('topPairsChart'), {
     type: 'bar',
+    data: { labels: data.top_pairs.map(p => p.pair), datasets: [{ label:'Count', data:data.top_pairs.map(p=>p.count), backgroundColor:'#ff9800' }]},
+    options: { plugins:{ title:{ display:true, text:'Top IP Pairs' } }, responsive:true, maintainAspectRatio:false }
+  });
+
+  // --- Line Chart: Packet size over packets ---
+  new Chart(document.getElementById('packetSizeLine'), {
+    type: 'line',
     data: {
-      labels: data.top_pairs.map(p => p.pair),
-      datasets: [{ label:'Count', data:data.top_pairs.map(p=>p.count), backgroundColor:'#ff9800' }]
+      labels: data.all_packets.map((pkt,i)=>i+1),
+      datasets:[{
+        label: 'Packet Length',
+        data: data.all_packets.map(pkt => pkt.length),
+        borderColor: '#0f62fe',
+        backgroundColor: 'rgba(15,98,254,0.2)',
+        fill:true
+      }]
     },
-    options: { 
-      plugins:{ title:{ display:true, text:'Top IP Pairs' } }, 
+    options:{ responsive:true, plugins:{ title:{ display:true, text:'Packet Length Trend' } } }
+  });
+
+  
+  // --- Radar Chart: Protocol counts ---
+  new Chart(document.getElementById('protocolRadar'), {
+    type: 'radar',
+    data: {
+      labels: data.protocols.map(p => p.protocol),
+      datasets:[{
+        label:'Protocol Count',
+        data:data.protocols.map(p => p.count),
+        backgroundColor: 'rgba(245,0,87,0.2)',
+        borderColor: '#f50057'
+      }]
+    },
+    options:{ responsive:true, plugins:{ title:{ display:true, text:'Protocol Radar' } } }
+  });
+
+  // --- Scatter Chart: Packet Size vs Timestamp ---
+  new Chart(document.getElementById('timeScatter'), {
+    type:'scatter',
+    data: {
+      datasets:[{
+        label:'Packet Size vs Packet #',
+        data: data.all_packets.map((pkt,i)=>({x: i+1, y: pkt.length})),
+        backgroundColor:'#0091ea'
+      }]
+    },
+    options:{
       responsive:true,
-      maintainAspectRatio:false
+      plugins:{ title:{ display:true, text:'Packet Size vs Packet #' } },
+      scales:{
+        x:{ title:{ display:true, text:'Packet #' } },
+        y:{ title:{ display:true, text:'Packet Size' } }
+      }
     }
-  });
+});
 
-  // --- Packet Table (all packets) ---
-  const tableBody = $('#packetsTable tbody');
-  tableBody.empty();
-
-  if(data.all_packets && data.all_packets.length>0){
-    data.all_packets.forEach((pkt, i) => {
-        tableBody.append(`<tr>
-          <td>${i+1}</td>
-          <td>${pkt.src_ip}</td>
-          <td>${pkt.dst_ip}</td>
-          <td>${pkt.protocol}</td>
-          <td>${pkt.length}</td>
-        </tr>`);
-    });
-  } else {
-    let packets = data.top_src_ips.map((ip, i) => ({
-        src_ip: ip.src_ip,
-        dst_ip: data.top_dst_ips[i] ? data.top_dst_ips[i].dst_ip : 'N/A',
-        protocol: data.protocols[i] ? data.protocols[i].protocol : 'N/A',
-        length: Math.floor(Math.random()*1500)+60
-    }));
-    packets.forEach((pkt,i)=>{
-        tableBody.append(`<tr>
-          <td>${i+1}</td>
-          <td>${pkt.src_ip}</td>
-          <td>${pkt.dst_ip}</td>
-          <td>${pkt.protocol}</td>
-          <td>${pkt.length}</td>
-        </tr>`);
-    });
-  }
-
-  // --- DataTable with proper Next/Previous pagination ---
-  if ($.fn.DataTable.isDataTable('#packetsTable')) {
-      $('#packetsTable').DataTable().clear().destroy();
-  }
-
-  $('#packetsTable').DataTable({
-    pageLength: 10,       // 10 packets per page
-    lengthChange: false,
-    searching: false,
-    ordering: true,
-    language: {
-        paginate: { previous: 'Previous', next: 'Next' }
-    }
-  });
 }
-
-// Load results on page load
 fetchResults();
 </script>
 </body>
