@@ -1,84 +1,291 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>NetPeek | Sleek Packet Analyzer</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-  body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg,#0f2027,#203a43,#2c5364); color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0; }
-  h1 { font-size:2rem; margin-bottom:10px; }
-  p { opacity:0.8; margin-bottom:20px; }
-  .card { background:rgba(255,255,255,0.1); border-radius:15px; padding:30px 40px; width:400px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.3); }
-  input[type="file"] { display:none; }
-  label { background:#00b4db; color:white; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:600; transition:background 0.3s; }
-  label:hover { background:#0083b0; }
-  button { background:#1cb5e0; border:none; color:white; font-weight:600; padding:10px 25px; border-radius:8px; cursor:pointer; margin-top:15px; transition:background 0.3s; }
-  button:hover { background:#00a0c6; }
-  #progressContainer { width:100%; height:10px; background:rgba(255,255,255,0.2); border-radius:5px; overflow:hidden; margin-top:20px; display:none; }
-  #progressBar { height:100%; width:0%; background:#00ffcc; transition:width 0.4s; }
-  #progressText { margin-top:10px; font-size:14px; opacity:0.9; }
-  #resultMessage { margin-top:20px; font-weight:500; }
-  .view-results { margin-top:20px; background:#22c55e; }
-  .view-results:hover { background:#16a34a; }
-</style>
+  <meta charset="UTF-8">
+  <title>NetPeek | Packet Analyzer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f5f7fa;
+      color: #222;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 1rem 2rem;
+    }
+    .navbar-brand {
+      font-weight: 700;
+      color: #0078d7 !important;
+      letter-spacing: 0.5px;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem 2rem 1rem;
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #111;
+    }
+    .hero p {
+      color: #555;
+      font-size: 1.1rem;
+      margin-top: 10px;
+    }
+    .gradient-bar {
+      height: 4px;
+      background: linear-gradient(90deg, #0078d7, #00bfa5);
+      width: 150px;
+      border-radius: 3px;
+      margin: 1.5rem auto;
+    }
+
+    /* Info Boxes */
+    .feature-box {
+      background: #ffffff;
+      padding: 2rem 1.5rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      height: 100%;
+    }
+    .feature-box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+    .feature-box h3 {
+      color: #0078d7;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .feature-box p {
+      color: #555;
+      font-size: 0.95rem;
+    }
+
+    /* Upload Section */
+    .upload-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      max-width: 500px;
+      margin: 3rem auto;
+      text-align: center;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    label {
+      background: linear-gradient(45deg, #0078d7, #00bfa5);
+      color: white;
+      padding: 10px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+    label:hover {
+      opacity: 0.9;
+    }
+
+    .btn-scan {
+      background: linear-gradient(45deg, #0078d7, #00bfa5);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 10px 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
+    .btn-scan:hover {
+      transform: scale(1.05);
+      opacity: 0.95;
+      box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+    }
+
+    /* Progress */
+    #progressContainer {
+      width: 100%;
+      height: 10px;
+      background: #e9ecef;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 20px;
+      display: none;
+    }
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0078d7, #00bfa5);
+      transition: width 0.4s;
+    }
+    #progressText {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #333;
+    }
+    #resultMessage {
+      margin-top: 20px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .view-results {
+      margin-top: 20px;
+      background: linear-gradient(45deg, #22c55e, #16a34a);
+      border: none;
+      color: white;
+      padding: 10px 25px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .view-results:hover {
+      transform: scale(1.05);
+      opacity: 0.95;
+      box-shadow: 0 0 15px rgba(22, 163, 74, 0.3);
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #888;
+      padding: 1rem;
+      border-top: 1px solid #eee;
+      background: #fff;
+      margin-top: 3rem;
+    }
+  </style>
 </head>
+
 <body>
-<div class="card">
-  <h1>NetPeek</h1>
-  <p>Analyze your PCAP files with AI-powered insights</p>
 
-  <input type="file" id="fileInput" accept=".pcap,.pcapng">
-  <label for="fileInput">Choose File</label><br>
+  <!-- Navbar -->
+  <nav class="navbar navbar-light">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+      <a class="navbar-brand">NetPeek Packet Analyzer</a>
+      <span class="text-muted small">Network Analysis Simplified</span>
+    </div>
+  </nav>
 
-  <button id="uploadBtn">Upload & Scan</button>
-
-  <div id="progressContainer">
-    <div id="progressBar"></div>
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Upload Your PCAP File</h1>
+    <p>Analyze captured network traffic and visualize data efficiently.</p>
+    <div class="gradient-bar"></div>
   </div>
-  <div id="progressText"></div>
-  <div id="resultMessage"></div>
 
-  <button class="view-results" onclick="window.location.href='/result.html'">View Results</button>
-</div>
+  <!-- Features -->
+  <div class="container my-5">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feature-box">
+          <h3>Packet Breakdown</h3>
+          <p>Get insights on protocols, source/destination IPs, and data flow structure.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-box">
+          <h3>Traffic Summary</h3>
+          <p>View total packets, average packet size, and connection statistics.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-box">
+          <h3>Protocol Insights</h3>
+          <p>Analyze TCP, UDP, ICMP, HTTP, DNS, and other protocol distributions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<script>
-const fileInput = document.getElementById('fileInput');
-const uploadBtn = document.getElementById('uploadBtn');
-const progressContainer = document.getElementById('progressContainer');
-const progressBar = document.getElementById('progressBar');
-const progressText = document.getElementById('progressText');
-const resultMessage = document.getElementById('resultMessage');
+  <!-- Upload Section -->
+  <div class="upload-card">
+    <h2 class="mb-3" style="color:#0078d7; font-weight:600;">Start Analysis</h2>
+    <p class="mb-4" style="color:#555;">Upload your PCAP or PCAPNG file below and begin analysis.</p>
 
-uploadBtn.addEventListener('click', () => {
-  const file = fileInput.files[0];
-  if (!file) { alert("Please select a file first!"); return; }
+    <input type="file" id="fileInput" accept=".pcap,.pcapng">
+    <label for="fileInput">Choose File</label><br>
+    <button id="uploadBtn" class="btn-scan">Start Scan</button>
 
-  const formData = new FormData();
-  formData.append("file", file);
+    <div id="progressContainer">
+      <div id="progressBar"></div>
+    </div>
+    <div id="progressText"></div>
+    <div id="resultMessage"></div>
 
-  progressContainer.style.display = "block";
-  progressBar.style.width = "0%";
-  progressText.innerText = "0%";
-  resultMessage.innerText = "";
+    <button class="view-results" onclick="window.location.href='/result.html'">View Results</button>
+  </div>
 
-  fetch("/upload", { method:"POST", body:formData })
-    .then(async response => {
-      const data = await response.json();
-      progressBar.style.width = "100%";
-      progressText.innerText = "100%";
-      if (response.ok) {
-        resultMessage.innerHTML = `✅ ${data.message}<br>Total Packets Parsed: ${data.summary.packets_parsed}`;
-      } else {
-        resultMessage.innerHTML = `❌ Error: ${data.error}`;
+  <footer>
+    © 2025 NetPeek | Designed for precision network analysis
+  </footer>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const resultMessage = document.getElementById('resultMessage');
+
+    uploadBtn.addEventListener('click', () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Please select a file first!");
+        return;
       }
-    })
-    .catch(err => {
-      resultMessage.innerHTML = `❌ Error: ${err}`;
-      progressBar.style.width = "100%";
-      progressText.innerText = "100%";
+
+      const formData = new FormData();
+      formData.append("file", file);
+      progressContainer.style.display = "block";
+      progressBar.style.width = "0%";
+      progressText.innerText = "0%";
+      resultMessage.innerText = "";
+
+      fetch("/upload", { method: "POST", body: formData })
+        .then(async response => {
+          const data = await response.json();
+          progressBar.style.width = "100%";
+          progressText.innerText = "100%";
+
+          if (response.ok) {
+            resultMessage.innerHTML = `
+              <strong>${data.message}</strong><br>
+              Total Packets Parsed: ${data.summary.packets_parsed}
+            `;
+          } else {
+            resultMessage.innerHTML = `Error: ${data.error}`;
+          }
+        })
+        .catch(err => {
+          resultMessage.innerHTML = `Error: ${err}`;
+          progressBar.style.width = "100%";
+          progressText.innerText = "100%";
+        });
     });
-});
-</script>
+  </script>
+
 </body>
 </html>
