@@ -34,12 +34,13 @@ h1 {
 .chart-container {
     flex: 1 1 400px;
     min-width: 300px;
+    max-width: 45%;
     background: #fff;
     padding: 15px;
     border-radius: 10px;
     box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
 }
-/* Pie chart container specifically */
+/* Pie chart container */
 .pie-container {
     max-width: 90%;
     margin: auto;
@@ -58,6 +59,27 @@ h1 {
     border-radius: 10px;
     box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
 }
+
+/* Go to Top button */
+#topBtn {
+    display: none;
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    z-index: 99;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    background-color: #0f62fe;
+    color: white;
+    cursor: pointer;
+    padding: 12px 18px;
+    border-radius: 50px;
+    box-shadow: 0px 3px 8px rgba(0,0,0,0.2);
+}
+#topBtn:hover {
+    background-color: #0053a0;
+}
 </style>
 </head>
 <body>
@@ -74,7 +96,7 @@ h1 {
     <div class="chart-container"><canvas id="topSrcChart"></canvas></div>
     <div class="chart-container"><canvas id="topDstChart"></canvas></div>
     <div class="chart-container"><canvas id="topPortsChart"></canvas></div>
-    <div class="chart-container"><canvas id="topPairsChart"></canvas></div>
+    <div class="chart-container" style="flex: 2 1 700px; height: 300px;"><canvas id="topPairsChart"></canvas></div>
   </div>
 
   <!-- Data table -->
@@ -92,7 +114,24 @@ h1 {
   </table>
 </div>
 
+<!-- Go to Top Button -->
+<button id="topBtn" title="Go to top">Top</button>
+
 <script>
+// Show/hide "Go to Top" button
+window.onscroll = function() { scrollFunction(); };
+function scrollFunction() {
+    const topBtn = document.getElementById("topBtn");
+    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+        topBtn.style.display = "block";
+    } else {
+        topBtn.style.display = "none";
+    }
+}
+document.getElementById("topBtn").onclick = function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 async function fetchResults() {
   const response = await fetch('/results');
   const data = await response.json();
@@ -143,42 +182,57 @@ async function fetchResults() {
     options: { plugins:{ title:{ display:true, text:'Top Ports' } }, responsive:true }
   });
 
-  // --- Top IP Pairs ---
+  // --- Top IP Pairs (Expanded Horizontally) ---
   new Chart(document.getElementById('topPairsChart'), {
     type: 'bar',
     data: {
       labels: data.top_pairs.map(p => p.pair),
       datasets: [{ label:'Count', data:data.top_pairs.map(p=>p.count), backgroundColor:'#ff9800' }]
     },
-    options: { plugins:{ title:{ display:true, text:'Top IP Pairs' } }, responsive:true }
+    options: { 
+      plugins:{ title:{ display:true, text:'Top IP Pairs' } }, 
+      responsive:true,
+      maintainAspectRatio:false
+    }
   });
 
-  // --- Packet Table ---
+  // --- Packet Table (all packets) ---
   const tableBody = $('#packetsTable tbody');
   tableBody.empty();
 
-  const samplePackets = data.top_src_ips.map((ip, i) => ({
-    frame: i+1,
-    src_ip: ip.src_ip,
-    dst_ip: data.top_dst_ips[i] ? data.top_dst_ips[i].dst_ip : 'N/A',
-    protocol: data.protocols[i] ? data.protocols[i].protocol : 'N/A',
-    length: Math.floor(Math.random()*1500)+60
-  }));
-
-  samplePackets.forEach(pkt => {
-    tableBody.append(`<tr>
-      <td>${pkt.frame}</td>
-      <td>${pkt.src_ip}</td>
-      <td>${pkt.dst_ip}</td>
-      <td>${pkt.protocol}</td>
-      <td>${pkt.length}</td>
-    </tr>`);
-  });
+  if(data.all_packets && data.all_packets.length>0){
+    data.all_packets.forEach((pkt, i) => {
+        tableBody.append(`<tr>
+          <td>${i+1}</td>
+          <td>${pkt.src_ip}</td>
+          <td>${pkt.dst_ip}</td>
+          <td>${pkt.protocol}</td>
+          <td>${pkt.length}</td>
+        </tr>`);
+    });
+  } else {
+    // fallback if backend doesn't return all packets
+    let packets = data.top_src_ips.map((ip, i) => ({
+        src_ip: ip.src_ip,
+        dst_ip: data.top_dst_ips[i] ? data.top_dst_ips[i].dst_ip : 'N/A',
+        protocol: data.protocols[i] ? data.protocols[i].protocol : 'N/A',
+        length: Math.floor(Math.random()*1500)+60
+    }));
+    packets.forEach((pkt,i)=>{
+        tableBody.append(`<tr>
+          <td>${i+1}</td>
+          <td>${pkt.src_ip}</td>
+          <td>${pkt.dst_ip}</td>
+          <td>${pkt.protocol}</td>
+          <td>${pkt.length}</td>
+        </tr>`);
+    });
+  }
 
   $('#packetsTable').DataTable({
     pageLength: 10,
     lengthChange: false,
-    searching: false, // removed search box
+    searching: false,
     ordering: true,
     language: {
       paginate: {
