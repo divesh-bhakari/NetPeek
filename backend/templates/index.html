@@ -30,27 +30,45 @@ body {
     font-weight: 700;
     color: #0078d7 !important;
 }
+
 .container h1 {
     text-align: center;
     margin: 2rem 0 2.5rem 0;
     font-weight: 700;
     color: #111;
 }
-.chart-container {
-    background: #fff;
+
+/* Chart Card Style */
+.chart-card {
+    background: #ffffff;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
     margin-bottom: 2rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
 }
-.pie-container {
-    max-width: 500px;
-    margin: auto;
-    padding: 20px;
+.chart-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+}
+.chart-header {
+    background: linear-gradient(90deg, #0078d7, #00bfa5);
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
     text-align: center;
 }
-.row.charts-row {
-    margin-bottom: 2rem;
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chart-container { height: 250px; }
 }
 </style>
 </head>
@@ -65,31 +83,68 @@ body {
 </nav>
 
 <div class="container">
-  <h1>NetPeek Analysis Results</h1>
+  <h1>Analysis Results</h1>
 
   <!-- Protocol Pie Chart -->
-  <div class="pie-container chart-container">
-      <canvas id="protocolChart"></canvas>
+  <div class="chart-card">
+    <div class="chart-header">Protocol Distribution</div>
+    <div class="chart-container"><canvas id="protocolChart"></canvas></div>
   </div>
 
-  <!-- Additional Pie Chart: Top Ports -->
-  <div class="pie-container chart-container">
-      <canvas id="extraPieChart"></canvas>
+  <!-- Top Ports Pie Chart -->
+  <div class="chart-card">
+    <div class="chart-header">Top Ports Distribution</div>
+    <div class="chart-container"><canvas id="extraPieChart"></canvas></div>
   </div>
 
-  <!-- Bar Charts Row -->
-  <div class="row charts-row">
-      <div class="col-md-6 chart-container"><canvas id="topSrcChart"></canvas></div>
-      <div class="col-md-6 chart-container"><canvas id="topDstChart"></canvas></div>
-      <div class="col-md-6 chart-container"><canvas id="topPortsChart"></canvas></div>
-      <div class="col-md-6 chart-container"><canvas id="topPairsChart"></canvas></div>
+  <!-- Bar Charts -->
+  <div class="row">
+    <div class="col-md-6">
+      <div class="chart-card">
+        <div class="chart-header">Top Source IPs</div>
+        <div class="chart-container"><canvas id="topSrcChart"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="chart-card">
+        <div class="chart-header">Top Destination IPs</div>
+        <div class="chart-container"><canvas id="topDstChart"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="chart-card">
+        <div class="chart-header">Top Ports</div>
+        <div class="chart-container"><canvas id="topPortsChart"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="chart-card">
+        <div class="chart-header">Top IP Pairs</div>
+        <div class="chart-container"><canvas id="topPairsChart"></canvas></div>
+      </div>
+    </div>
   </div>
 
-  <!-- Advanced Charts Row -->
-  <div class="row charts-row">
-      <div class="col-md-6 chart-container"><canvas id="packetSizeLine"></canvas></div>
-      <div class="col-md-6 chart-container"><canvas id="protocolRadar"></canvas></div>
-      <div class="col-md-12 chart-container"><canvas id="timeScatter"></canvas></div>
+  <!-- Advanced Charts -->
+  <div class="row">
+    <div class="col-md-6">
+      <div class="chart-card">
+        <div class="chart-header">Packet Length Trend</div>
+        <div class="chart-container"><canvas id="packetSizeLine"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="chart-card">
+        <div class="chart-header">Protocol Radar</div>
+        <div class="chart-container"><canvas id="protocolRadar"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="chart-card">
+        <div class="chart-header">Packet Size vs Packet #</div>
+        <div class="chart-container"><canvas id="timeScatter"></canvas></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -98,100 +153,37 @@ async function fetchResults() {
   const response = await fetch('/results');
   const data = await response.json();
 
-  // --- Protocol Pie Chart ---
+  // Protocol Pie
   new Chart(document.getElementById('protocolChart'), {
-    type: 'pie',
-    data: {
-      labels: data.protocols.map(p => p.protocol),
-      datasets: [{
-        data: data.protocols.map(p => p.count),
-        backgroundColor: ['#0078d7','#00bfa5','#ff6d00','#fdd835','#d500f9','#f50057','#0091ea']
-      }]
-    },
-    options: { plugins:{ title:{ display:true, text:'Protocol Distribution', font:{size:18} } }, responsive:true }
+    type:'pie',
+    data:{ labels:data.protocols.map(p=>p.protocol), datasets:[{ data:data.protocols.map(p=>p.count), backgroundColor:['#0078d7','#00bfa5','#ff6d00','#fdd835','#d500f9','#f50057','#0091ea'] }]},
+    options:{ responsive:true }
   });
 
-  // --- Extra Pie Chart: Top Ports ---
+  // Top Ports Pie
   new Chart(document.getElementById('extraPieChart'), {
-    type: 'pie',
-    data: {
-      labels: data.top_ports.map(p => p.port),
-      datasets: [{ 
-        data: data.top_ports.map(p=>p.count),
-        backgroundColor:['#0078d7','#00bfa5','#ff6d00','#fdd835','#d500f9','#f50057','#0091ea','#795548','#9c27b0','#607d8b']
-      }]
-    },
-    options: { plugins:{ title:{ display:true, text:'Top Ports Distribution', font:{size:18} } }, responsive:true }
+    type:'pie',
+    data:{ labels:data.top_ports.map(p=>p.port), datasets:[{ data:data.top_ports.map(p=>p.count), backgroundColor:['#0078d7','#00bfa5','#ff6d00','#fdd835','#d500f9','#f50057','#0091ea','#795548','#9c27b0','#607d8b'] }]},
+    options:{ responsive:true }
   });
 
-  // --- Bar Charts ---
-  new Chart(document.getElementById('topSrcChart'), {
-    type: 'bar',
-    data: { labels: data.top_src_ips.map(ip => ip.src_ip), datasets:[{ label:'Count', data:data.top_src_ips.map(ip=>ip.count), backgroundColor:'#0078d7' }]},
-    options: { plugins:{ title:{ display:true, text:'Top Source IPs' } }, responsive:true }
-  });
+  // Bar Charts
+  new Chart(document.getElementById('topSrcChart'), { type:'bar', data:{ labels:data.top_src_ips.map(ip=>ip.src_ip), datasets:[{ label:'Count', data:data.top_src_ips.map(ip=>ip.count), backgroundColor:'#0078d7' }]}, options:{ responsive:true } });
+  new Chart(document.getElementById('topDstChart'), { type:'bar', data:{ labels:data.top_dst_ips.map(ip=>ip.dst_ip), datasets:[{ label:'Count', data:data.top_dst_ips.map(ip=>ip.count), backgroundColor:'#00bfa5' }]}, options:{ responsive:true } });
+  new Chart(document.getElementById('topPortsChart'), { type:'bar', data:{ labels:data.top_ports.map(p=>p.port), datasets:[{ label:'Count', data:data.top_ports.map(p=>p.count), backgroundColor:'#ff6d00' }]}, options:{ responsive:true } });
+  new Chart(document.getElementById('topPairsChart'), { type:'bar', data:{ labels:data.top_pairs.map(p=>p.pair), datasets:[{ label:'Count', data:data.top_pairs.map(p=>p.count), backgroundColor:'#fdd835' }]}, options:{ responsive:true, maintainAspectRatio:false } });
 
-  new Chart(document.getElementById('topDstChart'), {
-    type: 'bar',
-    data: { labels: data.top_dst_ips.map(ip => ip.dst_ip), datasets:[{ label:'Count', data:data.top_dst_ips.map(ip=>ip.count), backgroundColor:'#00bfa5' }]},
-    options: { plugins:{ title:{ display:true, text:'Top Destination IPs' } }, responsive:true }
-  });
+  // Line Chart
+  new Chart(document.getElementById('packetSizeLine'), { type:'line', data:{ labels:data.all_packets.map((p,i)=>i+1), datasets:[{ label:'Packet Length', data:data.all_packets.map(p=>p.length), borderColor:'#0078d7', backgroundColor:'rgba(0,120,215,0.2)', fill:true }]}, options:{ responsive:true } });
 
-  new Chart(document.getElementById('topPortsChart'), {
-    type: 'bar',
-    data: { labels: data.top_ports.map(p => p.port), datasets:[{ label:'Count', data:data.top_ports.map(p=>p.count), backgroundColor:'#ff6d00' }]},
-    options: { plugins:{ title:{ display:true, text:'Top Ports' } }, responsive:true }
-  });
+  // Radar Chart
+  new Chart(document.getElementById('protocolRadar'), { type:'radar', data:{ labels:data.protocols.map(p=>p.protocol), datasets:[{ label:'Protocol Count', data:data.protocols.map(p=>p.count), borderColor:'#00bfa5', backgroundColor:'rgba(0,191,165,0.2)' }]}, options:{ responsive:true } });
 
-  new Chart(document.getElementById('topPairsChart'), {
-    type: 'bar',
-    data: { labels: data.top_pairs.map(p => p.pair), datasets:[{ label:'Count', data:data.top_pairs.map(p=>p.count), backgroundColor:'#fdd835' }]},
-    options: { plugins:{ title:{ display:true, text:'Top IP Pairs' } }, responsive:true, maintainAspectRatio:false }
-  });
-
-  // --- Line Chart: Packet Length Trend ---
-  new Chart(document.getElementById('packetSizeLine'), {
-    type: 'line',
-    data: {
-      labels: data.all_packets.map((pkt,i)=>i+1),
-      datasets:[{ label:'Packet Length', data:data.all_packets.map(pkt=>pkt.length), borderColor:'#0078d7', backgroundColor:'rgba(0,120,215,0.2)', fill:true }]
-    },
-    options:{ responsive:true, plugins:{ title:{ display:true, text:'Packet Length Trend' } } }
-  });
-
-  // --- Radar Chart: Protocol Counts ---
-  new Chart(document.getElementById('protocolRadar'), {
-    type:'radar',
-    data: {
-      labels: data.protocols.map(p => p.protocol),
-      datasets:[{ label:'Protocol Count', data:data.protocols.map(p => p.count), borderColor:'#00bfa5', backgroundColor:'rgba(0,191,165,0.2)' }]
-    },
-    options:{ responsive:true, plugins:{ title:{ display:true, text:'Protocol Radar' } } }
-  });
-
-  // --- Scatter Chart: Packet Size vs Packet # ---
-  new Chart(document.getElementById('timeScatter'), {
-    type:'scatter',
-    data: {
-      datasets:[{
-        label:'Packet Size vs Packet #',
-        data: data.all_packets.map((pkt,i)=>({x:i+1, y:pkt.length})),
-        backgroundColor:'#f50057'
-      }]
-    },
-    options:{
-      responsive:true,
-      plugins:{ title:{ display:true, text:'Packet Size vs Packet #' } },
-      scales:{
-        x:{ title:{ display:true, text:'Packet #' } },
-        y:{ title:{ display:true, text:'Packet Size' } }
-      }
-    }
-  });
-
+  // Scatter Chart
+  new Chart(document.getElementById('timeScatter'), { type:'scatter', data:{ datasets:[{ label:'Packet Size vs Packet #', data:data.all_packets.map((p,i)=>({x:i+1,y:p.length})), backgroundColor:'#f50057' }]}, options:{ responsive:true, scales:{ x:{ title:{ display:true, text:'Packet #' } }, y:{ title:{ display:true, text:'Packet Size' } } } } });
 }
-
 fetchResults();
 </script>
+
 </body>
 </html>
