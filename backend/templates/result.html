@@ -59,6 +59,9 @@
     box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
     transition: transform 0.35s ease, box-shadow 0.35s ease;
     position: relative;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
   }
   .chart-card:hover {
     transform: translateY(-6px);
@@ -80,6 +83,10 @@
     position: relative;
     height: 320px;
   }
+  .center-chart {
+    display: flex;
+    justify-content: center;
+  }
   /* Responsive adjustments */
   @media (max-width: 767px) {
     .chart-container {
@@ -93,7 +100,6 @@
       margin: 2.5rem 0 3rem;
     }
   }
-  /* Add bottom margin for columns */
   .row > [class*='col-'] {
     margin-bottom: 2.5rem;
   }
@@ -110,15 +116,19 @@
   <h1>Analysis Results</h1>
 
   <!-- Protocol Pie Chart -->
-  <div class="chart-card">
-    <div class="chart-header">Protocol Distribution</div>
-    <div class="chart-container"><canvas id="protocolChart"></canvas></div>
+  <div class="center-chart">
+    <div class="chart-card">
+      <div class="chart-header">Protocol Distribution</div>
+      <div class="chart-container"><canvas id="protocolChart"></canvas></div>
+    </div>
   </div>
 
   <!-- Top Ports Pie Chart -->
-  <div class="chart-card">
-    <div class="chart-header">Top Ports Distribution</div>
-    <div class="chart-container"><canvas id="extraPieChart"></canvas></div>
+  <div class="center-chart">
+    <div class="chart-card">
+      <div class="chart-header">Top Ports Distribution</div>
+      <div class="chart-container"><canvas id="extraPieChart"></canvas></div>
+    </div>
   </div>
 
   <!-- Bar Charts -->
@@ -151,19 +161,24 @@
 
   <!-- Advanced Charts -->
   <div class="row">
-    <div class="col-md-6">
+    <!-- Packet Length Trend -->
+    <div class="col-md-12">
       <div class="chart-card">
         <div class="chart-header">Packet Length Trend</div>
         <div class="chart-container"><canvas id="packetSizeLine"></canvas></div>
       </div>
     </div>
-    <div class="col-md-6">
+
+    <!-- Protocol Radar centered -->
+    <div class="col-md-12 center-chart">
       <div class="chart-card">
         <div class="chart-header">Protocol Radar</div>
         <div class="chart-container"><canvas id="protocolRadar"></canvas></div>
       </div>
     </div>
-    <div class="col-md-12">
+
+    <!-- Packet Size vs Packet # centered -->
+    <div class="col-md-12 center-chart">
       <div class="chart-card">
         <div class="chart-header">Packet Size vs Packet #</div>
         <div class="chart-container"><canvas id="timeScatter"></canvas></div>
