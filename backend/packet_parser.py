@@ -1,22 +1,16 @@
 import asyncio
 import pyshark
-import uuid
 from db_config import get_db_connection
 from datetime import datetime
 
-def parse_pcap(file_path):
+def parse_pcap(file_path, file_id):
     """
-    Parses a PCAP/PCAPNG file using PyShark and stores packet data in the database.
-    Each upload is tagged with a unique file_id for isolation in results.
+    Parse a PCAP file, insert packet data into MySQL,
+    and tag each record with a unique file_id for separation.
     """
-
-    # Fix asyncio issue for Python 3.11+
+    # Fix asyncio issue on Python 3.11+
     asyncio.set_event_loop(asyncio.new_event_loop())
 
-    # Create a unique identifier for this upload
-    file_id = str(uuid.uuid4())
-
-    # Open PCAP file
     cap = pyshark.FileCapture(file_path, only_summaries=False)
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -42,11 +36,9 @@ def parse_pcap(file_path):
 
             # TCP/UDP Layer
             src_port = getattr(packet.tcp, 'srcport', None) if hasattr(packet, 'tcp') else (
-                getattr(packet.udp, 'srcport', None) if hasattr(packet, 'udp') else None
-            )
+                getattr(packet.udp, 'srcport', None) if hasattr(packet, 'udp') else None)
             dst_port = getattr(packet.tcp, 'dstport', None) if hasattr(packet, 'tcp') else (
-                getattr(packet.udp, 'dstport', None) if hasattr(packet, 'udp') else None
-            )
+                getattr(packet.udp, 'dstport', None) if hasattr(packet, 'udp') else None)
             tcp_flags = getattr(packet.tcp, 'flags', None) if hasattr(packet, 'tcp') else None
             tcp_seq = int(getattr(packet.tcp, 'seq', 0)) if hasattr(packet, 'tcp') else None
             tcp_ack = int(getattr(packet.tcp, 'ack', 0)) if hasattr(packet, 'tcp') else None
@@ -59,20 +51,19 @@ def parse_pcap(file_path):
             flow_id = f"{src_ip}_{dst_ip}_{src_port}_{dst_port}"
             packet_summary = str(packet)
 
-            # Insert into database with file_id
+            # Insert into DB with file_id
             cursor.execute("""
                 INSERT INTO packets (
-                    file_id, timestamp, frame_number, src_mac, dst_mac, src_ip, dst_ip,
+                    timestamp, frame_number, src_mac, dst_mac, src_ip, dst_ip,
                     src_port, dst_port, protocol, length, ttl, tcp_flags,
                     tcp_seq, tcp_ack, ip_version, ip_header_len, ip_total_len,
-                    info, interface, flow_id, packet_summary
-                )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    info, interface, flow_id, packet_summary, file_id
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             """, (
-                file_id, timestamp, frame_number, src_mac, dst_mac, src_ip, dst_ip,
+                timestamp, frame_number, src_mac, dst_mac, src_ip, dst_ip,
                 src_port, dst_port, protocol, length, ttl, tcp_flags,
                 tcp_seq, tcp_ack, ip_version, ip_header_len, ip_total_len,
-                info, interface, flow_id, packet_summary
+                info, interface, flow_id, packet_summary, file_id
             ))
 
             packet_count += 1
@@ -85,5 +76,4 @@ def parse_pcap(file_path):
     cursor.close()
     connection.close()
 
-    # Return both packet count and file_id for tracking
     return {"packets_parsed": packet_count, "file_id": file_id}
