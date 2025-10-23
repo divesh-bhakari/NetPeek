@@ -174,7 +174,9 @@
 
 <script>
 async function fetchResults() {
-  const response = await fetch('/results');
+const urlParams = new URLSearchParams(window.location.search);
+const file_id = urlParams.get('file_id');
+const response = await fetch(`/results?file_id=${file_id}`);
   const data = await response.json();
 
   // Protocol Pie Chart

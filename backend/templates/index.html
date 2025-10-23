@@ -74,16 +74,6 @@
       font-size: 0.95rem;
     }
 
-    .container.my-5 {
-      margin-top: 2rem !important;
-      margin-bottom: 2rem !important;
-    }
-
-    .row.g-4 {
-      --bs-gutter-y: 1.25rem !important;
-      --bs-gutter-x: 1.25rem !important;
-    }
-
     .upload-card {
       background: #ffffff;
       border-radius: 16px;
@@ -235,7 +225,8 @@
     <div id="progressText"></div>
     <div id="resultMessage"></div>
 
-    <button class="view-results" onclick="window.location.href='/result.html'">View Results</button>
+    <!-- View Results button (disabled until upload completes) -->
+    <button id="viewResultsBtn" class="view-results" disabled>View Results</button>
   </div>
 
   <footer>
@@ -249,6 +240,9 @@
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
     const resultMessage = document.getElementById('resultMessage');
+    const viewResultsBtn = document.getElementById('viewResultsBtn');
+
+    let currentFileId = null; // store current file ID
 
     uploadBtn.addEventListener('click', () => {
       const file = fileInput.files[0];
@@ -263,6 +257,7 @@
       progressBar.style.width = "0%";
       progressText.innerText = "0%";
       resultMessage.innerText = "";
+      viewResultsBtn.disabled = true;
 
       fetch("/upload", { method: "POST", body: formData })
         .then(async response => {
@@ -271,7 +266,12 @@
           progressText.innerText = "100%";
 
           if (response.ok) {
+            // store file_id in localStorage and enable results button
+            currentFileId = data.file_id;
+            localStorage.setItem("netpeek_file_id", currentFileId);
+
             resultMessage.innerHTML = `<strong>${data.message}</strong><br>Total Packets Parsed: ${data.summary.packets_parsed}`;
+            viewResultsBtn.disabled = false;
           } else {
             resultMessage.innerHTML = `Error: ${data.error}`;
           }
@@ -281,6 +281,15 @@
           progressBar.style.width = "100%";
           progressText.innerText = "100%";
         });
+    });
+
+    // Redirect to result.html with correct file_id
+    viewResultsBtn.addEventListener('click', () => {
+      if (currentFileId) {
+        window.location.href = `/result.html?file_id=${currentFileId}`;
+      } else {
+        alert("Please upload and analyze a file first!");
+      }
     });
   </script>
 
