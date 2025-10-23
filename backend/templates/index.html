@@ -147,13 +147,13 @@
 
     .view-results {
       margin-top: 20px;
-      background: linear-gradient(45deg, #22c55e, #16a34a);
       border: none;
       color: white;
       padding: 10px 25px;
       border-radius: 8px;
       font-weight: 600;
       transition: 0.3s;
+      cursor: pointer;
     }
     .view-results:hover {
       transform: scale(1.05);
@@ -169,6 +169,15 @@
       border-top: 1px solid #eee;
       background: #fff;
       margin-top: 3rem;
+    }
+
+    /* Descriptive button color */
+    .descriptive-btn {
+      background: linear-gradient(45deg, #f59e0b, #d97706);
+    }
+
+    .diagram-btn {
+      background: linear-gradient(45deg, #22c55e, #16a34a);
     }
   </style>
 </head>
@@ -225,8 +234,11 @@
     <div id="progressText"></div>
     <div id="resultMessage"></div>
 
-    <!-- View Results button (disabled until upload completes) -->
-    <button id="viewResultsBtn" class="view-results" disabled>View Results</button>
+    <!-- Two buttons for results -->
+    <div class="d-flex justify-content-center gap-3 mt-4">
+      <button id="viewDiagramBtn" class="view-results diagram-btn" disabled>View Diagrammatic Results</button>
+      <button id="viewDescriptiveBtn" class="view-results descriptive-btn" disabled>View Descriptive Results</button>
+    </div>
   </div>
 
   <footer>
@@ -240,7 +252,8 @@
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
     const resultMessage = document.getElementById('resultMessage');
-    const viewResultsBtn = document.getElementById('viewResultsBtn');
+    const viewDiagramBtn = document.getElementById('viewDiagramBtn');
+    const viewDescriptiveBtn = document.getElementById('viewDescriptiveBtn');
 
     let currentFileId = null; // store current file ID
 
@@ -257,7 +270,8 @@
       progressBar.style.width = "0%";
       progressText.innerText = "0%";
       resultMessage.innerText = "";
-      viewResultsBtn.disabled = true;
+      viewDiagramBtn.disabled = true;
+      viewDescriptiveBtn.disabled = true;
 
       fetch("/upload", { method: "POST", body: formData })
         .then(async response => {
@@ -266,12 +280,14 @@
           progressText.innerText = "100%";
 
           if (response.ok) {
-            // store file_id in localStorage and enable results button
             currentFileId = data.file_id;
             localStorage.setItem("netpeek_file_id", currentFileId);
 
             resultMessage.innerHTML = `<strong>${data.message}</strong><br>Total Packets Parsed: ${data.summary.packets_parsed}`;
-            viewResultsBtn.disabled = false;
+
+            // Enable both buttons
+            viewDiagramBtn.disabled = false;
+            viewDescriptiveBtn.disabled = false;
           } else {
             resultMessage.innerHTML = `Error: ${data.error}`;
           }
@@ -283,10 +299,17 @@
         });
     });
 
-    // Redirect to result.html with correct file_id
-    viewResultsBtn.addEventListener('click', () => {
+    viewDiagramBtn.addEventListener('click', () => {
       if (currentFileId) {
         window.location.href = `/result.html?file_id=${currentFileId}`;
+      } else {
+        alert("Please upload and analyze a file first!");
+      }
+    });
+
+    viewDescriptiveBtn.addEventListener('click', () => {
+      if (currentFileId) {
+        window.location.href = `/descriptive_result.html?file_id=${currentFileId}`;
       } else {
         alert("Please upload and analyze a file first!");
       }

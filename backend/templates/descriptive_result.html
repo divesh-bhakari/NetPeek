@@ -17,7 +17,6 @@
     margin: 0;
     padding: 0;
   }
-
   .navbar {
     background: #fff;
     box-shadow: 0 1px 6px rgb(0 0 0 / 0.1);
@@ -26,24 +25,20 @@
     justify-content: space-between;
     align-items: center;
   }
-
   .navbar-brand {
     font-weight: 800;
     font-size: 1.5rem;
     color: #0f4c81;
   }
-
   .container {
     margin-top: 3rem;
     margin-bottom: 3rem;
   }
-
   h1 {
     text-align: center;
     font-size: 2rem;
     margin-bottom: 1.5rem;
   }
-
   .info-card, .ai-card {
     background: #fff;
     padding: 1.5rem 2rem;
@@ -51,22 +46,18 @@
     box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
     margin-bottom: 2rem;
   }
-
   .info-card h3, .ai-card h3 {
     color: #0f4c81;
     margin-bottom: 1rem;
   }
-
   .info-list li {
     margin-bottom: 0.5rem;
     line-height: 1.5;
   }
-
   .ai-card {
     background: #f0f9ff;
     border-left: 5px solid #0f4c81;
   }
-
   .btn-back {
     display: inline-block;
     background: linear-gradient(45deg, #0f4c81, #10b981);
@@ -77,13 +68,11 @@
     text-decoration: none;
     transition: 0.3s;
   }
-
   .btn-back:hover {
     transform: scale(1.05);
     opacity: 0.95;
     box-shadow: 0 0 15px rgba(15, 76, 129, 0.3);
   }
-
 </style>
 </head>
 
@@ -126,38 +115,47 @@
 </div>
 
 <script>
+function getFileIdFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('file_id');
+}
+
 async function fetchDescriptiveData() {
+  const fileId = getFileIdFromURL();
+  if (!fileId) {
+    document.getElementById('aiInsights').innerHTML = '<li>Error: Missing file_id in URL</li>';
+    return;
+  }
+
   try {
-    const response = await fetch('/results'); // same route as diagram data
+    const response = await fetch(`/results_descriptive_ai?file_id=${fileId}`);
     const data = await response.json();
 
-    // Populate basic info
-    document.getElementById('fileName').innerText = data.file_name || 'Unknown';
-    document.getElementById('totalPackets').innerText = data.total_packets;
-    document.getElementById('captureDuration').innerText = data.capture_duration || 'Unknown';
-    document.getElementById('topSrcIP').innerText = data.top_src_ips.length ? data.top_src_ips[0].src_ip : 'N/A';
-    document.getElementById('topDstIP').innerText = data.top_dst_ips.length ? data.top_dst_ips[0].dst_ip : 'N/A';
-    document.getElementById('topProtocol').innerText = data.protocols.length ? data.protocols[0].protocol : 'N/A';
-    const avgSize = data.all_packets.length
-      ? Math.round(data.all_packets.reduce((sum,p)=>sum+p.length,0)/data.all_packets.length)
-      : 0;
-    document.getElementById('avgPacketSize').innerText = avgSize;
+    if (data.error) {
+      document.getElementById('aiInsights').innerHTML = `<li>Error fetching data: ${data.error}</li>`;
+      return;
+    }
 
-    // Generate AI Insights (placeholder for now)
+    // Populate basic info from API's summary object
+    const summary = data.summary;
+    document.getElementById('fileName').innerText = summary.file_name || 'Uploaded PCAP';
+    document.getElementById('totalPackets').innerText = summary.total_packets;
+    document.getElementById('captureDuration').innerText = summary.capture_duration || 'Unknown';
+    document.getElementById('topSrcIP').innerText = summary.top_src_ip || 'N/A';
+    document.getElementById('topDstIP').innerText = summary.top_dst_ip || 'N/A';
+    document.getElementById('topProtocol').innerText = summary.top_protocol || 'N/A';
+    document.getElementById('avgPacketSize').innerText = summary.avg_packet_size || 0;
+
+    // Populate AI insights
     const aiList = document.getElementById('aiInsights');
     aiList.innerHTML = '';
-    // Example insights, later integrate AI API
-    const insights = [
-      `The majority of traffic is ${data.protocols[0]?.protocol || 'Unknown'} between internal hosts.`,
-      `${data.top_src_ips[0]?.src_ip || 'N/A'} is the top talker, contributing significantly to overall traffic.`,
-      `Observed ${data.top_ports.length} frequently used ports, with top port ${data.top_ports[0]?.port || 'N/A'}.`,
-      `Packet sizes range from small control packets to larger data packets; average size is ${avgSize} bytes.`,
-      `Check high activity flows like ${data.top_pairs[0]?.pair || 'N/A'} for potential anomalies.`
-    ];
-    insights.forEach(ins => {
-      const li = document.createElement('li');
-      li.innerText = ins;
-      aiList.appendChild(li);
+    const aiText = data.ai_insight || 'No insights available.';
+    aiText.split('\n').forEach(line => {
+      if (line.trim() !== '') {
+        const li = document.createElement('li');
+        li.innerText = line.trim();
+        aiList.appendChild(li);
+      }
     });
 
   } catch(err) {
@@ -166,7 +164,7 @@ async function fetchDescriptiveData() {
   }
 }
 
-fetchDescriptiveData();
+window.onload = fetchDescriptiveData;
 </script>
 
 </body>
