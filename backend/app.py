@@ -304,7 +304,7 @@ def get_descriptive_results_ai():
         Provide 4-5 bullet points of insights, including potential suspicious activity or patterns.
         """
 
-        response = openai.ChatCompletion.create(
+        response = openai.Chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
