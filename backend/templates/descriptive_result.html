@@ -3,169 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NetPeek | Descriptive Results</title>
-
-<!-- Bootstrap -->
+<title>NetPeek | Descriptive Analysis</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
   body {
+    background-color: #f5f7fa;
     font-family: 'Inter', sans-serif;
-    background-color: #f9fafb;
-    color: #1e293b;
+    color: #222;
     margin: 0;
     padding: 0;
   }
   .navbar {
-    background: #fff;
-    box-shadow: 0 1px 6px rgb(0 0 0 / 0.1);
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
-  .navbar-brand {
-    font-weight: 800;
-    font-size: 1.5rem;
-    color: #0f4c81;
-  }
-  .container {
-    margin-top: 3rem;
-    margin-bottom: 3rem;
-  }
-  h1 {
-    text-align: center;
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-  }
-  .info-card, .ai-card {
-    background: #fff;
-    padding: 1.5rem 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
-    margin-bottom: 2rem;
-  }
-  .info-card h3, .ai-card h3 {
-    color: #0f4c81;
-    margin-bottom: 1rem;
-  }
-  .info-list li {
-    margin-bottom: 0.5rem;
-    line-height: 1.5;
-  }
-  .ai-card {
-    background: #f0f9ff;
-    border-left: 5px solid #0f4c81;
-  }
-  .btn-back {
-    display: inline-block;
-    background: linear-gradient(45deg, #0f4c81, #10b981);
-    color: white;
-    font-weight: 600;
-    padding: 10px 25px;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: 0.3s;
-  }
-  .btn-back:hover {
-    transform: scale(1.05);
-    opacity: 0.95;
-    box-shadow: 0 0 15px rgba(15, 76, 129, 0.3);
+  .navbar-brand { font-weight: 700; color: #0078d7 !important; }
+  .container { margin-top: 3rem; margin-bottom: 3rem; }
+  .card { border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); padding: 1.5rem; margin-bottom: 1.5rem; background: #fff; }
+  .card h5 { font-weight: 600; color: #0078d7; }
+  .ai-insights { background: #ffffff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+  .ai-insights h5 { font-weight: 600; color: #d97706; margin-bottom: 1rem; }
+  ul { padding-left: 1.2rem; }
+  footer {
+    text-align: center; font-size: 0.85rem; color: #888; padding: 1rem;
+    border-top: 1px solid #eee; background: #fff; margin-top: 3rem;
   }
 </style>
 </head>
-
 <body>
-
-<nav class="navbar">
-  <div class="navbar-brand">NetPeek Packet Analyzer</div>
-  <div class="text-muted small">Descriptive Network Report</div>
+<nav class="navbar navbar-light">
+  <div class="container-fluid d-flex justify-content-between align-items-center">
+    <a class="navbar-brand">NetPeek Packet Analyzer</a>
+    <span class="text-muted small">Descriptive Analysis</span>
+  </div>
 </nav>
 
 <div class="container">
-
-  <h1>Descriptive Analysis</h1>
-
-  <!-- Basic PCAP Info -->
-  <div class="info-card">
-    <h3>PCAP File Information</h3>
-    <ul class="info-list">
-      <li><strong>File Name:</strong> <span id="fileName"></span></li>
-      <li><strong>Total Packets:</strong> <span id="totalPackets"></span></li>
-      <li><strong>Capture Duration:</strong> <span id="captureDuration"></span></li>
-      <li><strong>Top Source IP:</strong> <span id="topSrcIP"></span></li>
-      <li><strong>Top Destination IP:</strong> <span id="topDstIP"></span></li>
-      <li><strong>Most Used Protocol:</strong> <span id="topProtocol"></span></li>
-      <li><strong>Average Packet Size:</strong> <span id="avgPacketSize"></span> bytes</li>
-    </ul>
+  <div id="summaryCards" class="row g-4">
+    <!-- Cards will be injected here -->
   </div>
 
-  <!-- AI Generated Insights -->
-  <div class="ai-card">
-    <h3>AI Insights</h3>
-    <ul class="info-list" id="aiInsights">
-      <li>Loading AI-generated insights...</li>
-    </ul>
+  <div class="ai-insights" id="aiInsights" style="display:none;">
+    <h5>AI Insights</h5>
+    <ul id="aiList"></ul>
   </div>
 
-  <div class="text-center">
-    <a href="/" class="btn-back">Back to Upload</a>
+  <div class="text-center mt-4">
+    <button class="btn btn-primary" onclick="goHome()">← Back to Upload</button>
   </div>
 </div>
 
+<footer>© 2025 NetPeek | Designed for precision network analysis</footer>
+
 <script>
-function getFileIdFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('file_id');
+const fileId = new URLSearchParams(window.location.search).get('file_id');
+
+if (!fileId) {
+  alert("Missing file_id! Please upload and analyze a file first.");
+  window.location.href = '/';
 }
 
-async function fetchDescriptiveData() {
-  const fileId = getFileIdFromURL();
-  if (!fileId) {
-    document.getElementById('aiInsights').innerHTML = '<li>Error: Missing file_id in URL</li>';
-    return;
-  }
-
-  try {
-    const response = await fetch(`/results_descriptive_ai?file_id=${fileId}`);
-    const data = await response.json();
-
+// Fetch descriptive + AI data
+fetch(`/results_descriptive_ai?file_id=${fileId}`)
+  .then(res => res.json())
+  .then(data => {
     if (data.error) {
-      document.getElementById('aiInsights').innerHTML = `<li>Error fetching data: ${data.error}</li>`;
+      alert("Error fetching data: " + data.error);
       return;
     }
 
-    // Populate basic info from API's summary object
     const summary = data.summary;
-    document.getElementById('fileName').innerText = summary.file_name || 'Uploaded PCAP';
-    document.getElementById('totalPackets').innerText = summary.total_packets;
-    document.getElementById('captureDuration').innerText = summary.capture_duration || 'Unknown';
-    document.getElementById('topSrcIP').innerText = summary.top_src_ip || 'N/A';
-    document.getElementById('topDstIP').innerText = summary.top_dst_ip || 'N/A';
-    document.getElementById('topProtocol').innerText = summary.top_protocol || 'N/A';
-    document.getElementById('avgPacketSize').innerText = summary.avg_packet_size || 0;
+    const aiInsight = data.ai_insight;
 
-    // Populate AI insights
-    const aiList = document.getElementById('aiInsights');
-    aiList.innerHTML = '';
-    const aiText = data.ai_insight || 'No insights available.';
-    aiText.split('\n').forEach(line => {
-      if (line.trim() !== '') {
-        const li = document.createElement('li');
-        li.innerText = line.trim();
-        aiList.appendChild(li);
-      }
+    // Render summary cards
+    const container = document.getElementById('summaryCards');
+    const fields = [
+      {title: "File Name", value: summary.file_name},
+      {title: "Total Packets", value: summary.total_packets},
+      {title: "Total Bytes", value: summary.total_bytes},
+      {title: "Capture Duration", value: summary.capture_duration},
+      {title: "Top Source IP", value: summary.top_src_ip},
+      {title: "Top Destination IP", value: summary.top_dst_ip},
+      {title: "Most Used Protocol", value: summary.top_protocol},
+      {title: "Average Packet Size (bytes)", value: summary.avg_packet_size},
+      {title: "Top Ports", value: summary.top_ports.map(p => p.port).join(", ")}
+    ];
+
+    fields.forEach(f => {
+      const col = document.createElement('div');
+      col.className = 'col-md-4';
+      col.innerHTML = `<div class="card"><h5>${f.title}</h5><p>${f.value}</p></div>`;
+      container.appendChild(col);
     });
 
-  } catch(err) {
-    console.error(err);
-    document.getElementById('aiInsights').innerHTML = '<li>Error fetching data</li>';
-  }
+    // Render AI insights
+    if (aiInsight) {
+      const aiContainer = document.getElementById('aiInsights');
+      const aiList = document.getElementById('aiList');
+      aiInsight.split("\n").forEach(line => {
+        if (line.trim()) {
+          const li = document.createElement('li');
+          li.textContent = line.replace(/^[-\*\•]\s*/, ''); // remove bullet chars
+          aiList.appendChild(li);
+        }
+      });
+      aiContainer.style.display = 'block';
+    }
+  })
+  .catch(err => {
+    alert("Failed to fetch descriptive results: " + err);
+  });
+
+function goHome() {
+  window.location.href = '/';
 }
-
-window.onload = fetchDescriptiveData;
 </script>
-
 </body>
 </html>
