@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetPeek | Descriptive Results</title>
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb;
+    color: #1e293b;
+    margin: 0;
+    padding: 0;
+  }
+
+  .navbar {
+    background: #fff;
+    box-shadow: 0 1px 6px rgb(0 0 0 / 0.1);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .navbar-brand {
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: #0f4c81;
+  }
+
+  .container {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-card, .ai-card {
+    background: #fff;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+    margin-bottom: 2rem;
+  }
+
+  .info-card h3, .ai-card h3 {
+    color: #0f4c81;
+    margin-bottom: 1rem;
+  }
+
+  .info-list li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .ai-card {
+    background: #f0f9ff;
+    border-left: 5px solid #0f4c81;
+  }
+
+  .btn-back {
+    display: inline-block;
+    background: linear-gradient(45deg, #0f4c81, #10b981);
+    color: white;
+    font-weight: 600;
+    padding: 10px 25px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.3s;
+  }
+
+  .btn-back:hover {
+    transform: scale(1.05);
+    opacity: 0.95;
+    box-shadow: 0 0 15px rgba(15, 76, 129, 0.3);
+  }
+
+</style>
+</head>
+
+<body>
+
+<nav class="navbar">
+  <div class="navbar-brand">NetPeek Packet Analyzer</div>
+  <div class="text-muted small">Descriptive Network Report</div>
+</nav>
+
+<div class="container">
+
+  <h1>Descriptive Analysis</h1>
+
+  <!-- Basic PCAP Info -->
+  <div class="info-card">
+    <h3>PCAP File Information</h3>
+    <ul class="info-list">
+      <li><strong>File Name:</strong> <span id="fileName"></span></li>
+      <li><strong>Total Packets:</strong> <span id="totalPackets"></span></li>
+      <li><strong>Capture Duration:</strong> <span id="captureDuration"></span></li>
+      <li><strong>Top Source IP:</strong> <span id="topSrcIP"></span></li>
+      <li><strong>Top Destination IP:</strong> <span id="topDstIP"></span></li>
+      <li><strong>Most Used Protocol:</strong> <span id="topProtocol"></span></li>
+      <li><strong>Average Packet Size:</strong> <span id="avgPacketSize"></span> bytes</li>
+    </ul>
+  </div>
+
+  <!-- AI Generated Insights -->
+  <div class="ai-card">
+    <h3>AI Insights</h3>
+    <ul class="info-list" id="aiInsights">
+      <li>Loading AI-generated insights...</li>
+    </ul>
+  </div>
+
+  <div class="text-center">
+    <a href="/" class="btn-back">Back to Upload</a>
+  </div>
+</div>
+
+<script>
+async function fetchDescriptiveData() {
+  try {
+    const response = await fetch('/results'); // same route as diagram data
+    const data = await response.json();
+
+    // Populate basic info
+    document.getElementById('fileName').innerText = data.file_name || 'Unknown';
+    document.getElementById('totalPackets').innerText = data.total_packets;
+    document.getElementById('captureDuration').innerText = data.capture_duration || 'Unknown';
+    document.getElementById('topSrcIP').innerText = data.top_src_ips.length ? data.top_src_ips[0].src_ip : 'N/A';
+    document.getElementById('topDstIP').innerText = data.top_dst_ips.length ? data.top_dst_ips[0].dst_ip : 'N/A';
+    document.getElementById('topProtocol').innerText = data.protocols.length ? data.protocols[0].protocol : 'N/A';
+    const avgSize = data.all_packets.length
+      ? Math.round(data.all_packets.reduce((sum,p)=>sum+p.length,0)/data.all_packets.length)
+      : 0;
+    document.getElementById('avgPacketSize').innerText = avgSize;
+
+    // Generate AI Insights (placeholder for now)
+    const aiList = document.getElementById('aiInsights');
+    aiList.innerHTML = '';
+    // Example insights, later integrate AI API
+    const insights = [
+      `The majority of traffic is ${data.protocols[0]?.protocol || 'Unknown'} between internal hosts.`,
+      `${data.top_src_ips[0]?.src_ip || 'N/A'} is the top talker, contributing significantly to overall traffic.`,
+      `Observed ${data.top_ports.length} frequently used ports, with top port ${data.top_ports[0]?.port || 'N/A'}.`,
+      `Packet sizes range from small control packets to larger data packets; average size is ${avgSize} bytes.`,
+      `Check high activity flows like ${data.top_pairs[0]?.pair || 'N/A'} for potential anomalies.`
+    ];
+    insights.forEach(ins => {
+      const li = document.createElement('li');
+      li.innerText = ins;
+      aiList.appendChild(li);
+    });
+
+  } catch(err) {
+    console.error(err);
+    document.getElementById('aiInsights').innerHTML = '<li>Error fetching data</li>';
+  }
+}
+
+fetchDescriptiveData();
+</script>
+
+</body>
+</html>
