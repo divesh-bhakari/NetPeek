@@ -146,16 +146,29 @@ def get_results():
 @app.route('/results_descriptive_ai', methods=['GET'])
 def get_descriptive_results_ai():
     """
-    Returns descriptive PCAP analysis along with AI-generated insights using Gemini AI.
+    Returns descriptive PCAP analysis for the latest upload along with AI insights.
+    Works even if no file_id is provided.
     """
     try:
-        file_id = request.args.get("file_id")
-        if not file_id:
-            return jsonify({"error": "Missing file_id parameter"}), 400
-
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
 
+        # ✅ Get the latest uploaded file (based on timestamp)
+        cursor.execute("""
+            SELECT file_id, file_name
+            FROM packets
+            WHERE file_id IS NOT NULL
+            ORDER BY id DESC LIMIT 1
+        """)
+        latest_file = cursor.fetchone()
+
+        if not latest_file:
+            return jsonify({"error": "No PCAP data found in database."}), 404
+
+        file_id = latest_file['file_id']
+        file_name = latest_file.get('file_name', 'Unknown')
+
+        # --- Fetch summary metrics ---
         cursor.execute("SELECT COUNT(*) as total_packets FROM packets WHERE file_id=%s", (file_id,))
         total_packets = cursor.fetchone()['total_packets']
 
@@ -184,18 +197,14 @@ def get_descriptive_results_ai():
 
         avg_packet_size = round(total_bytes / total_packets) if total_packets else 0
 
-        cursor.execute("SELECT file_name FROM packets WHERE file_id=%s ORDER BY id ASC LIMIT 1", (file_id,))
-        file_row = cursor.fetchone()
-        file_name = file_row['file_name'] if file_row else 'Unknown'
-
         cursor.close()
         connection.close()
 
         # --- Generate AI insights using Gemini ---
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-1.5-pro")  # ✅ use a supported model
         prompt = f"""
         You are a network traffic analysis expert.
-        Analyze the following PCAP summary and provide 4-5 bullet points with observations and possible anomalies:
+        Analyze the following PCAP summary and provide 4-5 bullet points with meaningful observations and possible anomalies:
 
         File Name: {file_name}
         Total Packets: {total_packets}
@@ -208,7 +217,7 @@ def get_descriptive_results_ai():
         """
 
         response = model.generate_content(prompt)
-        ai_insight = response.text.strip() if response and response.text else "No insights generated."
+        ai_insight = response.text.strip() if response and hasattr(response, "text") else "No insights generated."
 
         return jsonify({
             "summary": {
