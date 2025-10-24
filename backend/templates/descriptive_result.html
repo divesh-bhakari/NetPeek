@@ -58,67 +58,71 @@
 <footer>© 2025 NetPeek | Designed for precision network analysis</footer>
 
 <script>
-const fileId = new URLSearchParams(window.location.search).get('file_id');
+  // Extract file_id from URL
+  const fileId = new URLSearchParams(window.location.search).get('file_id');
+  if (!fileId) {
+    alert("Missing file_id! Please upload and analyze a file first.");
+    window.location.href = '/';
+  }
 
-if (!fileId) {
-  alert("Missing file_id! Please upload and analyze a file first.");
-  window.location.href = '/';
-}
+  // Fetch descriptive + AI data
+  fetch(`/results_descriptive_ai?file_id=${fileId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("Error fetching data: " + data.error);
+        return;
+      }
 
-// Fetch descriptive + AI data
-fetch(`/results_descriptive_ai?file_id=${fileId}`)
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) {
-      alert("Error fetching data: " + data.error);
-      return;
-    }
+      const summary = data.summary;
+      const aiInsight = data.ai_insight;
 
-    const summary = data.summary;
-    const aiInsight = data.ai_insight;
+      // --- Render Summary Cards ---
+      const container = document.getElementById('summaryCards');
+      const fields = [
+        {title: "File Name", value: summary.file_name},
+        {title: "Total Packets", value: summary.total_packets},
+        {title: "Total Bytes", value: summary.total_bytes},
+        {title: "Capture Duration", value: summary.capture_duration},
+        {title: "Top Source IP", value: summary.top_src_ip},
+        {title: "Top Destination IP", value: summary.top_dst_ip},
+        {title: "Most Used Protocol", value: summary.top_protocol},
+        {title: "Average Packet Size (bytes)", value: summary.avg_packet_size},
+        {title: "Top Ports", value: summary.top_ports.map(p => p.port).join(", ")}
+      ];
 
-    // Render summary cards
-    const container = document.getElementById('summaryCards');
-    const fields = [
-      {title: "File Name", value: summary.file_name},
-      {title: "Total Packets", value: summary.total_packets},
-      {title: "Total Bytes", value: summary.total_bytes},
-      {title: "Capture Duration", value: summary.capture_duration},
-      {title: "Top Source IP", value: summary.top_src_ip},
-      {title: "Top Destination IP", value: summary.top_dst_ip},
-      {title: "Most Used Protocol", value: summary.top_protocol},
-      {title: "Average Packet Size (bytes)", value: summary.avg_packet_size},
-      {title: "Top Ports", value: summary.top_ports.map(p => p.port).join(", ")}
-    ];
+      fields.forEach(f => {
+        const col = document.createElement('div');
+        col.className = 'col-md-4';
+        col.innerHTML = `<div class="card"><h5>${f.title}</h5><p>${f.value}</p></div>`;
+        container.appendChild(col);
+      });
 
-    fields.forEach(f => {
-      const col = document.createElement('div');
-      col.className = 'col-md-4';
-      col.innerHTML = `<div class="card"><h5>${f.title}</h5><p>${f.value}</p></div>`;
-      container.appendChild(col);
+      // --- Render AI Insights (Gemini output) ---
+      if (aiInsight) {
+        const aiContainer = document.getElementById('aiInsights');
+        const aiList = document.getElementById('aiList');
+        
+        // Gemini might return multiline text or Markdown-like bullets
+        aiInsight
+          .split(/\n+/)
+          .filter(line => line.trim() !== "")
+          .forEach(line => {
+            const li = document.createElement('li');
+            li.textContent = line.replace(/^[-*•]\s*/, ''); // Remove leading bullet symbols
+            aiList.appendChild(li);
+          });
+
+        aiContainer.style.display = 'block';
+      }
+    })
+    .catch(err => {
+      alert("Failed to fetch descriptive results: " + err);
     });
 
-    // Render AI insights
-    if (aiInsight) {
-      const aiContainer = document.getElementById('aiInsights');
-      const aiList = document.getElementById('aiList');
-      aiInsight.split("\n").forEach(line => {
-        if (line.trim()) {
-          const li = document.createElement('li');
-          li.textContent = line.replace(/^[-\*\•]\s*/, ''); // remove bullet chars
-          aiList.appendChild(li);
-        }
-      });
-      aiContainer.style.display = 'block';
-    }
-  })
-  .catch(err => {
-    alert("Failed to fetch descriptive results: " + err);
-  });
-
-function goHome() {
-  window.location.href = '/';
-}
+  function goHome() {
+    window.location.href = '/';
+  }
 </script>
 </body>
 </html>

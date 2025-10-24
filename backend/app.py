@@ -2,35 +2,40 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import os
 import uuid
-import openai
+from dotenv import load_dotenv
 from packet_parser import parse_pcap
 from db_config import get_db_connection
+import google.generativeai as genai
+
+# --- Load API keys ---
+load_dotenv("api.env")
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # --- Initialize Flask app ---
 app = Flask(__name__, template_folder='templates')
 CORS(app)
-app.config['TEMPLATES_AUTO_RELOAD'] = True  # Force Flask to reload templates
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # --- Upload folder ---
 UPLOAD_FOLDER = os.path.join("backend", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# --- Serve Home page ---
+
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# --- Serve Results page ---
+
 @app.route('/result.html')
 def result_page():
     return render_template('result.html')
 
-# --- Serve Descriptive Results page ---
+
 @app.route('/descriptive_result.html')
 def descriptive_result_page():
     return render_template('descriptive_result.html')
 
-# --- Upload route ---
+
 @app.route('/upload', methods=['POST'])
 def upload_pcap():
     try:
@@ -43,26 +48,19 @@ def upload_pcap():
 
         filepath = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(filepath)
-
-        # Step 2: Generate a unique file_id for this upload
         file_id = str(uuid.uuid4())
-
-        # Step 3: Parse PCAP and store into MySQL with file_id
         result = parse_pcap(filepath, file_id=file_id)
 
-        # Return success + file_id for frontend to remember
         return jsonify({
             'message': 'File processed successfully',
             'summary': result,
             'file_id': file_id
         })
-
     except Exception as e:
         print(f"[!] Error in /upload route: {e}")
         return jsonify({'error': str(e)}), 500
 
 
-# --- Results Data API (Step 4: Filter by file_id) ---
 @app.route('/results', methods=['GET'])
 def get_results():
     try:
@@ -73,7 +71,6 @@ def get_results():
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
 
-        # Filter all queries by file_id
         cursor.execute("SELECT COUNT(*) as total_packets FROM packets WHERE file_id=%s", (file_id,))
         total_packets = cursor.fetchone()['total_packets']
 
@@ -145,219 +142,74 @@ def get_results():
         print(f"[!] Error in /results route: {e}")
         return jsonify({"error": str(e)}), 500
 
-# --- API route to provide descriptive data ---
-@app.route('/results_descriptive', methods=['GET'])
-def get_descriptive_results():
+
+@app.route('/results_descriptive_ai', methods=['GET'])
+def get_descriptive_results_ai():
+    """
+    Returns descriptive PCAP analysis along with AI-generated insights using Gemini AI.
+    """
     try:
-        file_id = request.args.get("file_id")  # optional, for specific PCAP
+        file_id = request.args.get("file_id")
+        if not file_id:
+            return jsonify({"error": "Missing file_id parameter"}), 400
+
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
 
-        # --- Basic PCAP info ---
-        query_total = "SELECT COUNT(*) as total_packets FROM packets"
-        query_total_bytes = "SELECT SUM(length) as total_bytes FROM packets"
-        query_times = "SELECT MIN(timestamp) as start_time, MAX(timestamp) as end_time FROM packets"
-        filters = ()
-        if file_id:
-            query_total += " WHERE file_id=%s"
-            query_total_bytes += " WHERE file_id=%s"
-            query_times += " WHERE file_id=%s"
-            filters = (file_id,)
-
-        cursor.execute(query_total, filters)
+        cursor.execute("SELECT COUNT(*) as total_packets FROM packets WHERE file_id=%s", (file_id,))
         total_packets = cursor.fetchone()['total_packets']
 
-        cursor.execute(query_total_bytes, filters)
+        cursor.execute("SELECT SUM(length) as total_bytes FROM packets WHERE file_id=%s", (file_id,))
         total_bytes = cursor.fetchone()['total_bytes'] or 0
 
-        cursor.execute(query_times, filters)
+        cursor.execute("SELECT MIN(timestamp) as start_time, MAX(timestamp) as end_time FROM packets WHERE file_id=%s", (file_id,))
         times = cursor.fetchone()
-        start_time = times['start_time']
-        end_time = times['end_time']
+        start_time, end_time = times['start_time'], times['end_time']
         capture_duration = str(end_time - start_time) if start_time and end_time else "Unknown"
 
-        # Top source IP
-        query_top_src = "SELECT src_ip, COUNT(*) as count FROM packets WHERE src_ip IS NOT NULL"
-        if file_id: query_top_src += " AND file_id=%s"
-        query_top_src += " GROUP BY src_ip ORDER BY count DESC LIMIT 1"
-        cursor.execute(query_top_src, (file_id,) if file_id else ())
+        cursor.execute("SELECT src_ip, COUNT(*) as count FROM packets WHERE file_id=%s AND src_ip IS NOT NULL GROUP BY src_ip ORDER BY count DESC LIMIT 1", (file_id,))
         top_src_ip = cursor.fetchone()
         top_src_ip_val = top_src_ip['src_ip'] if top_src_ip else 'N/A'
 
-        # Top destination IP
-        query_top_dst = "SELECT dst_ip, COUNT(*) as count FROM packets WHERE dst_ip IS NOT NULL"
-        if file_id: query_top_dst += " AND file_id=%s"
-        query_top_dst += " GROUP BY dst_ip ORDER BY count DESC LIMIT 1"
-        cursor.execute(query_top_dst, (file_id,) if file_id else ())
+        cursor.execute("SELECT dst_ip, COUNT(*) as count FROM packets WHERE file_id=%s AND dst_ip IS NOT NULL GROUP BY dst_ip ORDER BY count DESC LIMIT 1", (file_id,))
         top_dst_ip = cursor.fetchone()
         top_dst_ip_val = top_dst_ip['dst_ip'] if top_dst_ip else 'N/A'
 
-        # Most used protocol
-        query_protocol = "SELECT protocol, COUNT(*) as count FROM packets"
-        if file_id: query_protocol += " WHERE file_id=%s"
-        query_protocol += " GROUP BY protocol ORDER BY count DESC LIMIT 1"
-        cursor.execute(query_protocol, (file_id,) if file_id else ())
+        cursor.execute("SELECT protocol, COUNT(*) as count FROM packets WHERE file_id=%s GROUP BY protocol ORDER BY count DESC LIMIT 1", (file_id,))
         protocol = cursor.fetchone()
-        protocol_val = protocol['protocol'] if protocol else 'N/A'
+        top_protocol_val = protocol['protocol'] if protocol else 'N/A'
 
-        # Average packet size
+        cursor.execute("SELECT COALESCE(src_port,dst_port) as port, COUNT(*) as count FROM packets WHERE file_id=%s AND (src_port IS NOT NULL OR dst_port IS NOT NULL) GROUP BY port ORDER BY count DESC LIMIT 5", (file_id,))
+        top_ports = cursor.fetchall() or []
+
         avg_packet_size = round(total_bytes / total_packets) if total_packets else 0
 
-        # Optional: file name
-        query_file_name = "SELECT file_name FROM packets"
-        if file_id: query_file_name += " WHERE file_id=%s"
-        query_file_name += " ORDER BY id ASC LIMIT 1"
-        cursor.execute(query_file_name, (file_id,) if file_id else ())
+        cursor.execute("SELECT file_name FROM packets WHERE file_id=%s ORDER BY id ASC LIMIT 1", (file_id,))
         file_row = cursor.fetchone()
         file_name = file_row['file_name'] if file_row else 'Unknown'
 
         cursor.close()
         connection.close()
 
-        return jsonify({
-            "file_name": file_name,
-            "total_packets": total_packets,
-            "total_bytes": total_bytes,
-            "capture_duration": capture_duration,
-            "top_src_ip": top_src_ip_val,
-            "top_dst_ip": top_dst_ip_val,
-            "top_protocol": protocol_val,
-            "avg_packet_size": avg_packet_size
-        })
-
-    except Exception as e:
-        print(f"[!] Error in /results_descriptive route: {e}")
-        return jsonify({"error": str(e)}), 500
-
-
-# --- API route to provide descriptive data with AI insights ---
-@app.route('/results_descriptive_ai', methods=['GET'])
-def get_descriptive_results_ai():
-    """
-    Returns descriptive PCAP analysis along with AI-generated insights.
-    Fetches total packets, total bytes, capture duration, top IPs, top protocol,
-    average packet size, top ports, and file name from MySQL database using file_id.
-    Generates AI insights using OpenAI GPT-4 model.
-    """
-    try:
-        # --- Get file_id from query parameters ---
-        file_id = request.args.get("file_id")
-        if not file_id:
-            return jsonify({"error": "Missing file_id parameter"}), 400
-
-        # --- Connect to MySQL ---
-        connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
-
-        # --- Fetch total packets ---
-        cursor.execute(
-            "SELECT COUNT(*) as total_packets FROM packets WHERE file_id=%s", 
-            (file_id,)
-        )
-        total_packets_row = cursor.fetchone()
-        total_packets = total_packets_row['total_packets'] if total_packets_row else 0
-
-        # --- Fetch total bytes ---
-        cursor.execute(
-            "SELECT SUM(length) as total_bytes FROM packets WHERE file_id=%s", 
-            (file_id,)
-        )
-        total_bytes_row = cursor.fetchone()
-        total_bytes = total_bytes_row['total_bytes'] or 0
-
-        # --- Fetch capture start and end timestamps ---
-        cursor.execute(
-            "SELECT MIN(timestamp) as start_time, MAX(timestamp) as end_time FROM packets WHERE file_id=%s", 
-            (file_id,)
-        )
-        times = cursor.fetchone()
-        start_time = times['start_time'] if times else None
-        end_time = times['end_time'] if times else None
-        capture_duration = str(end_time - start_time) if start_time and end_time else "Unknown"
-
-        # --- Fetch top source IP ---
-        cursor.execute(
-            "SELECT src_ip, COUNT(*) as count FROM packets WHERE file_id=%s AND src_ip IS NOT NULL "
-            "GROUP BY src_ip ORDER BY count DESC LIMIT 1",
-            (file_id,)
-        )
-        top_src_ip_row = cursor.fetchone()
-        top_src_ip_val = top_src_ip_row['src_ip'] if top_src_ip_row and top_src_ip_row['src_ip'] else 'N/A'
-
-        # --- Fetch top destination IP ---
-        cursor.execute(
-            "SELECT dst_ip, COUNT(*) as count FROM packets WHERE file_id=%s AND dst_ip IS NOT NULL "
-            "GROUP BY dst_ip ORDER BY count DESC LIMIT 1",
-            (file_id,)
-        )
-        top_dst_ip_row = cursor.fetchone()
-        top_dst_ip_val = top_dst_ip_row['dst_ip'] if top_dst_ip_row and top_dst_ip_row['dst_ip'] else 'N/A'
-
-        # --- Fetch most used protocol ---
-        cursor.execute(
-            "SELECT protocol, COUNT(*) as count FROM packets WHERE file_id=%s "
-            "GROUP BY protocol ORDER BY count DESC LIMIT 1",
-            (file_id,)
-        )
-        protocol_row = cursor.fetchone()
-        top_protocol_val = protocol_row['protocol'] if protocol_row and protocol_row['protocol'] else 'N/A'
-
-        # --- Fetch top ports (src or dst) ---
-        cursor.execute(
-            "SELECT COALESCE(src_port,dst_port) as port, COUNT(*) as count "
-            "FROM packets WHERE file_id=%s AND (src_port IS NOT NULL OR dst_port IS NOT NULL) "
-            "GROUP BY port ORDER BY count DESC LIMIT 5",
-            (file_id,)
-        )
-        top_ports = cursor.fetchall() or []
-
-        # --- Calculate average packet size ---
-        avg_packet_size = round(total_bytes / total_packets) if total_packets else 0
-
-        # --- Fetch file name ---
-        cursor.execute(
-            "SELECT file_name FROM packets WHERE file_id=%s ORDER BY id ASC LIMIT 1",
-            (file_id,)
-        )
-        file_row = cursor.fetchone()
-        file_name = file_row['file_name'] if file_row and file_row['file_name'] else 'Unknown'
-
-        # --- Close DB connection ---
-        cursor.close()
-        connection.close()
-
-        # --- Generate AI insights using OpenAI ---
-        import os
-        import openai
-
-        # Make sure your OPENAI_API_KEY is set as an environment variable
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-
+        # --- Generate AI insights using Gemini ---
+        model = genai.GenerativeModel("gemini-1.5-flash")
         prompt = f"""
-You are a network analyst AI. 
-Given the following PCAP summary, provide concise, insightful observations and potential anomalies:
+        You are a network traffic analysis expert.
+        Analyze the following PCAP summary and provide 4-5 bullet points with observations and possible anomalies:
 
-File Name: {file_name}
-Total Packets: {total_packets}
-Capture Duration: {capture_duration}
-Top Source IP: {top_src_ip_val}
-Top Destination IP: {top_dst_ip_val}
-Most Used Protocol: {top_protocol_val}
-Top Ports: {[p['port'] for p in top_ports]}
-Average Packet Size: {avg_packet_size} bytes
+        File Name: {file_name}
+        Total Packets: {total_packets}
+        Capture Duration: {capture_duration}
+        Top Source IP: {top_src_ip_val}
+        Top Destination IP: {top_dst_ip_val}
+        Most Used Protocol: {top_protocol_val}
+        Top Ports: {[p['port'] for p in top_ports]}
+        Average Packet Size: {avg_packet_size} bytes
+        """
 
-Provide 4-5 bullet points of insights, including potential suspicious activity or patterns.
-"""
+        response = model.generate_content(prompt)
+        ai_insight = response.text.strip() if response and response.text else "No insights generated."
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=300
-        )
-        ai_insight = response.choices[0].message["content"].strip()
-
-        # --- Return descriptive summary + AI insights ---
         return jsonify({
             "summary": {
                 "file_name": file_name,
@@ -378,6 +230,5 @@ Provide 4-5 bullet points of insights, including potential suspicious activity o
         return jsonify({"error": str(e)}), 500
 
 
-# --- Run Flask ---
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)
