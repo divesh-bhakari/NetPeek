@@ -5,11 +5,10 @@ import uuid
 from dotenv import load_dotenv
 from packet_parser import parse_pcap
 from db_config import get_db_connection
-import google.generativeai as genai
+from tf_analyzer import tf_analyzer  # ✅ Import TensorFlow analyzer
 
-# --- Load API keys ---
+# --- Load API keys (not needed for TensorFlow, but keep for future) ---
 load_dotenv("api.env")
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # --- Initialize Flask app ---
 app = Flask(__name__, template_folder='templates')
@@ -20,21 +19,17 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 UPLOAD_FOLDER = os.path.join("backend", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-
 @app.route('/')
 def home():
     return render_template('index.html')
-
 
 @app.route('/result.html')
 def result_page():
     return render_template('result.html')
 
-
 @app.route('/descriptive_result.html')
 def descriptive_result_page():
     return render_template('descriptive_result.html')
-
 
 @app.route('/upload', methods=['POST'])
 def upload_pcap():
@@ -48,9 +43,32 @@ def upload_pcap():
 
         filepath = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(filepath)
+        
         file_id = str(uuid.uuid4())
+        
+        # Store file metadata
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS uploaded_files (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                file_id VARCHAR(255) UNIQUE NOT NULL,
+                file_name VARCHAR(255) NOT NULL,
+                upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        cursor.execute("""
+            INSERT INTO uploaded_files (file_id, file_name, upload_time)
+            VALUES (%s, %s, NOW())
+        """, (file_id, file.filename))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
         result = parse_pcap(filepath, file_id=file_id)
-
+        
         return jsonify({
             'message': 'File processed successfully',
             'summary': result,
@@ -59,7 +77,6 @@ def upload_pcap():
     except Exception as e:
         print(f"[!] Error in /upload route: {e}")
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/results', methods=['GET'])
 def get_results():
@@ -81,19 +98,19 @@ def get_results():
         protocols = cursor.fetchall()
 
         cursor.execute("""
-            SELECT src_ip, COUNT(*) as count 
-            FROM packets 
-            WHERE file_id=%s AND src_ip IS NOT NULL 
-            GROUP BY src_ip 
+            SELECT src_ip, COUNT(*) as count
+            FROM packets
+            WHERE file_id=%s AND src_ip IS NOT NULL
+            GROUP BY src_ip
             ORDER BY count DESC LIMIT 10
         """, (file_id,))
         top_src_ips = cursor.fetchall()
 
         cursor.execute("""
-            SELECT dst_ip, COUNT(*) as count 
-            FROM packets 
-            WHERE file_id=%s AND dst_ip IS NOT NULL 
-            GROUP BY dst_ip 
+            SELECT dst_ip, COUNT(*) as count
+            FROM packets
+            WHERE file_id=%s AND dst_ip IS NOT NULL
+            GROUP BY dst_ip
             ORDER BY count DESC LIMIT 10
         """, (file_id,))
         top_dst_ips = cursor.fetchall()
@@ -137,38 +154,36 @@ def get_results():
             "top_pairs": top_pairs,
             "all_packets": all_packets
         })
-
     except Exception as e:
         print(f"[!] Error in /results route: {e}")
         return jsonify({"error": str(e)}), 500
 
-
-@app.route('/results_descriptive_ai', methods=['GET'])
-def get_descriptive_results_ai():
+# ✅ NEW ENDPOINT: TensorFlow-based Descriptive Analysis
+@app.route('/results_descriptive_tf', methods=['GET'])
+def get_descriptive_results_tf():
     """
-    Returns descriptive PCAP analysis for the latest upload along with AI insights.
-    Works even if no file_id is provided.
+    TensorFlow-based traffic analysis - NO API KEYS NEEDED!
+    Analyzes latest PCAP file and provides AI insights
     """
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
 
-        # ✅ Get the latest uploaded file (based on timestamp)
+        # Get latest uploaded file
         cursor.execute("""
             SELECT file_id, file_name
-            FROM packets
-            WHERE file_id IS NOT NULL
-            ORDER BY id DESC LIMIT 1
+            FROM uploaded_files
+            ORDER BY upload_time DESC LIMIT 1
         """)
         latest_file = cursor.fetchone()
 
         if not latest_file:
-            return jsonify({"error": "No PCAP data found in database."}), 404
+            return jsonify({"error": "No PCAP data found. Please upload a file first."}), 404
 
         file_id = latest_file['file_id']
-        file_name = latest_file.get('file_name', 'Unknown')
+        file_name = latest_file['file_name']
 
-        # --- Fetch summary metrics ---
+        # --- Basic Statistics ---
         cursor.execute("SELECT COUNT(*) as total_packets FROM packets WHERE file_id=%s", (file_id,))
         total_packets = cursor.fetchone()['total_packets']
 
@@ -200,25 +215,10 @@ def get_descriptive_results_ai():
         cursor.close()
         connection.close()
 
-        # --- Generate AI insights using Gemini ---
-        model = genai.GenerativeModel("gemini-1.5-pro")  # ✅ use a supported model
-        prompt = f"""
-        You are a network traffic analysis expert.
-        Analyze the following PCAP summary and provide 4-5 bullet points with meaningful observations and possible anomalies:
-
-        File Name: {file_name}
-        Total Packets: {total_packets}
-        Capture Duration: {capture_duration}
-        Top Source IP: {top_src_ip_val}
-        Top Destination IP: {top_dst_ip_val}
-        Most Used Protocol: {top_protocol_val}
-        Top Ports: {[p['port'] for p in top_ports]}
-        Average Packet Size: {avg_packet_size} bytes
-        """
-
-        response = model.generate_content(prompt)
-        ai_insight = response.text.strip() if response and hasattr(response, "text") else "No insights generated."
-
+        # ✅ TensorFlow Analysis (NO API KEY NEEDED!)
+        print(f"[*] Running TensorFlow analysis for file_id: {file_id}")
+        tf_analysis = tf_analyzer.analyze_traffic_patterns(file_id)
+        
         return jsonify({
             "summary": {
                 "file_name": file_name,
@@ -231,13 +231,16 @@ def get_descriptive_results_ai():
                 "top_ports": top_ports,
                 "avg_packet_size": avg_packet_size
             },
-            "ai_insight": ai_insight
+            "ai_insights": tf_analysis['insights'],
+            "risk_level": tf_analysis['risk_level'],
+            "statistics": tf_analysis['statistics']
         })
 
     except Exception as e:
-        print(f"[!] Error in /results_descriptive_ai route: {e}")
+        print(f"[!] Error in /results_descriptive_tf route: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)
