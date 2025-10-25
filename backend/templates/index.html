@@ -7,213 +7,270 @@
 
 <!-- Bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-body {
-background-color: #f5f7fa;
-color: #222;
-font-family: 'Inter', sans-serif;
-margin: 0;
-padding: 0;
+:root {
+  --primary-color: #0078d7;
+  --secondary-color: #00bfa5;
+  --accent-color: #f59e0b;
+  --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  --dark-gradient: linear-gradient(135deg, #0f172a, #1e293b);
+  --bg-light: #f8fafc;
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --card-shadow: 0 10px 25px rgba(0,0,0,0.07);
+  --hover-shadow: 0 15px 35px rgba(0,0,0,0.12);
 }
 
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  margin: 0;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Navbar */
 .navbar {
-background: #ffffff;
-box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-padding: 1rem 2rem;
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  padding: 1rem 3rem;
+  transition: all 0.3s ease;
+}
+.navbar:hover {
+  box-shadow: 0 6px 28px rgba(0,0,0,0.07);
 }
 .navbar-brand {
-font-weight: 700;
-color: #0078d7 !important;
-letter-spacing: 0.5px;
+  font-weight: 700;
+  color: var(--primary-color) !important;
+  font-size: 1.35rem;
+  letter-spacing: 0.6px;
 }
-
-.auth-buttons {
-display: flex;
-gap: 10px;
+.navbar-brand::before {
+  content: "🌐 ";
+  font-size: 1.3rem;
 }
-
-.btn-login, .btn-register {
-padding: 8px 20px;
-border-radius: 8px;
-font-weight: 600;
-text-decoration: none;
-transition: 0.3s;
-font-size: 0.95rem;
+.auth-buttons a {
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 8px 22px;
+  transition: all 0.3s ease;
 }
-
 .btn-login {
-background: transparent;
-color: #0078d7;
-border: 2px solid #0078d7;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
 }
-
 .btn-login:hover {
-background: #0078d7;
-color: white;
+  background: var(--primary-color);
+  color: #fff;
 }
-
 .btn-register {
-background: linear-gradient(45deg, #0078d7, #00bfa5);
-color: white;
-border: none;
+  background: var(--gradient);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,123,255,0.2);
 }
-
 .btn-register:hover {
-opacity: 0.9;
-transform: scale(1.05);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 20px rgba(0,123,255,0.25);
 }
 
+/* Hero Section */
 .hero {
-text-align: center;
-padding: 2.5rem 1rem 1.5rem 1rem;
+  text-align: center;
+  padding: 6rem 1.5rem 3rem;
+  background: radial-gradient(circle at top right, #e0f2fe 0%, #f8fafc 100%);
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(0,191,165,0.15), transparent 70%);
+  z-index: 0;
 }
 .hero h1 {
-font-size: 2.5rem;
-font-weight: 700;
-color: #111;
+  font-weight: 700;
+  font-size: 2.8rem;
+  color: var(--text-dark);
+  position: relative;
+  z-index: 2;
 }
 .hero p {
-color: #555;
-font-size: 1.1rem;
-margin-top: 10px;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-top: 10px;
+  z-index: 2;
+  position: relative;
 }
 .gradient-bar {
-height: 4px;
-background: linear-gradient(90deg, #0078d7, #00bfa5);
-width: 150px;
-border-radius: 3px;
-margin: 1rem auto 1.5rem;
+  height: 5px;
+  width: 180px;
+  background: var(--gradient);
+  border-radius: 3px;
+  margin: 1.5rem auto 2rem;
 }
 
+/* Feature Cards */
 .feature-box {
-background: #ffffff;
-padding: 1.75rem 1.25rem;
-border-radius: 12px;
-text-align: center;
-box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-transition: all 0.3s ease;
-height: 100%;
+  background: #fff;
+  padding: 2.2rem 1.5rem;
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid #f1f5f9;
 }
 .feature-box:hover {
-transform: translateY(-4px);
-box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+  transform: translateY(-6px);
+  box-shadow: var(--hover-shadow);
 }
 .feature-box h3 {
-color: #0078d7;
-margin-bottom: 1rem;
-font-weight: 600;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-bottom: 1rem;
 }
 .feature-box p {
-color: #555;
-font-size: 0.95rem;
+  color: var(--text-muted);
+  font-size: 0.97rem;
+  line-height: 1.5;
 }
 
+/* Upload Section */
 .upload-card {
-background: #ffffff;
-border-radius: 16px;
-padding: 1.75rem 3.5rem;
-box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-max-width: 700px;
-margin: 2.5rem auto;
-text-align: center;
+  background: #fff;
+  border-radius: 20px;
+  padding: 3rem 3rem 3.5rem;
+  box-shadow: var(--card-shadow);
+  max-width: 760px;
+  margin: 4rem auto;
+  text-align: center;
+  border-top: 4px solid var(--primary-color);
+  transition: all 0.3s ease;
+}
+.upload-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--hover-shadow);
+}
+.upload-card h2 {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+.upload-card p {
+  color: var(--text-muted);
 }
 
 input[type="file"] { display: none; }
 
 label {
-background: linear-gradient(45deg, #0078d7, #00bfa5);
-color: white;
-padding: 10px 25px;
-border-radius: 8px;
-cursor: pointer;
-font-weight: 600;
-transition: 0.3s;
-display: inline-block;
-margin-bottom: 1rem;
+  background: var(--gradient);
+  color: #fff;
+  padding: 12px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+  display: inline-block;
+  margin-top: 1rem;
 }
-label:hover { opacity: 0.9; }
+label:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 18px rgba(0,123,255,0.25);
+}
 
 .btn-scan {
-background: linear-gradient(45deg, #0078d7, #00bfa5);
-border: none;
-color: white;
-font-weight: 600;
-padding: 10px 30px;
-border-radius: 8px;
-cursor: pointer;
-margin-top: 10px;
-transition: 0.3s;
+  background: var(--gradient);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 34px;
+  border-radius: 10px;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 .btn-scan:hover {
-transform: scale(1.05);
-opacity: 0.95;
-box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(0,191,165,0.35);
 }
 
+/* Progress Bar */
 #progressContainer {
-width: 100%;
-height: 10px;
-background: #e9ecef;
-border-radius: 5px;
-overflow: hidden;
-margin-top: 20px;
-display: none;
+  width: 100%;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+  display: none;
+  margin-top: 25px;
 }
-
 #progressBar {
-height: 100%;
-width: 0%;
-background: linear-gradient(90deg, #0078d7, #00bfa5);
-transition: width 0.4s;
+  height: 100%;
+  width: 0%;
+  background: var(--gradient);
+  transition: width 0.5s ease;
 }
-
 #progressText {
-margin-top: 10px;
-font-size: 14px;
-color: #333;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text-muted);
 }
-
 #resultMessage {
-margin-top: 20px;
-font-weight: 500;
-color: #333;
+  margin-top: 20px;
+  font-weight: 500;
+  color: var(--text-dark);
 }
 
+/* Results Buttons */
 .view-results {
-margin-top: 20px;
-border: none;
-color: white;
-padding: 10px 25px;
-border-radius: 8px;
-font-weight: 600;
-transition: 0.3s;
-cursor: pointer;
+  margin-top: 30px;
+  border: none;
+  color: #fff;
+  padding: 12px 30px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 .view-results:hover {
-transform: scale(1.05);
-opacity: 0.95;
-box-shadow: 0 0 15px rgba(22, 163, 74, 0.3);
+  transform: scale(1.07);
 }
-
-footer {
-text-align: center;
-font-size: 0.85rem;
-color: #888;
-padding: 1rem;
-border-top: 1px solid #eee;
-background: #fff;
-margin-top: 3rem;
-}
-
-/* Descriptive button color */
-.descriptive-btn {
-background: linear-gradient(45deg, #f59e0b, #d97706);
-}
-
 .diagram-btn {
-background: linear-gradient(45deg, #22c55e, #16a34a);
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  box-shadow: 0 4px 14px rgba(34,197,94,0.25);
+}
+.descriptive-btn {
+  background: linear-gradient(45deg, #f59e0b, #d97706);
+  box-shadow: 0 4px 14px rgba(245,158,11,0.25);
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  border-top: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  background: #fff;
+  margin-top: 4rem;
+  letter-spacing: 0.3px;
+}
+
+/* Subtle animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero, .feature-box, .upload-card {
+  animation: fadeIn 1.1s ease;
 }
 </style>
 </head>
@@ -221,72 +278,70 @@ background: linear-gradient(45deg, #22c55e, #16a34a);
 <body>
 
 <nav class="navbar navbar-light">
-<div class="container-fluid d-flex justify-content-between align-items-center">
-<a class="navbar-brand">NetPeek Packet Analyzer</a>
-<div class="d-flex align-items-center gap-4">
-<span class="text-muted small">Network Analysis Simplified</span>
-<div class="auth-buttons">
-<a href="login.html" class="btn-login">Login</a>
-<a href="registration.html" class="btn-register">Register</a>
-</div>
-</div>
-</div>
+  <div class="container-fluid d-flex justify-content-between align-items-center">
+    <a class="navbar-brand">NetPeek Packet Analyzer</a>
+    <div class="d-flex align-items-center gap-4">
+      <span class="text-muted small">Network Analysis Simplified</span>
+      <div class="auth-buttons d-flex gap-2">
+        <a href="login.html" class="btn-login">Login</a>
+        <a href="registration.html" class="btn-register">Register</a>
+      </div>
+    </div>
+  </div>
 </nav>
 
 <div class="hero">
-<h1>Upload Your PCAP File</h1>
-<p>Analyze captured network traffic and visualize data efficiently.</p>
-<div class="gradient-bar"></div>
+  <h1>Upload Your PCAP File</h1>
+  <p>Analyze captured network traffic and visualize data efficiently.</p>
+  <div class="gradient-bar"></div>
 </div>
 
 <div class="container my-5">
-<div class="row g-4">
-<div class="col-md-4">
-<div class="feature-box">
-<h3>Packet Breakdown</h3>
-<p>Get insights on protocols, source/destination IPs, and data flow structure.</p>
-</div>
-</div>
-<div class="col-md-4">
-<div class="feature-box">
-<h3>Traffic Summary</h3>
-<p>View total packets, average packet size, and connection statistics.</p>
-</div>
-</div>
-<div class="col-md-4">
-<div class="feature-box">
-<h3>Protocol Insights</h3>
-<p>Analyze TCP, UDP, ICMP, HTTP, DNS, and other protocol distributions.</p>
-</div>
-</div>
-</div>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="feature-box">
+        <h3>Packet Breakdown</h3>
+        <p>Get insights on protocols, source/destination IPs, and data flow structure.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-box">
+        <h3>Traffic Summary</h3>
+        <p>View total packets, average packet size, and connection statistics.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-box">
+        <h3>Protocol Insights</h3>
+        <p>Analyze TCP, UDP, ICMP, HTTP, DNS, and other protocol distributions.</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="upload-card">
-<h2 class="mb-3" style="color:#0078d7; font-weight:600;">Start Analysis</h2>
-<p class="mb-4" style="color:#555;">Upload your PCAP or PCAPNG file below and begin analysis.</p>
+  <h2>Start Analysis</h2>
+  <p>Upload your PCAP or PCAPNG file below and begin analysis.</p>
 
-<input type="file" id="fileInput" accept=".pcap,.pcapng">
-<label for="fileInput">Choose File</label><br>
-<button id="uploadBtn" class="btn-scan">Start Scan</button>
+  <input type="file" id="fileInput" accept=".pcap,.pcapng">
+  <label for="fileInput">Choose File</label><br>
+  <button id="uploadBtn" class="btn-scan">Start Scan</button>
 
-<div id="progressContainer">
-<div id="progressBar"></div>
-</div>
-<div id="progressText"></div>
-<div id="resultMessage"></div>
+  <div id="progressContainer"><div id="progressBar"></div></div>
+  <div id="progressText"></div>
+  <div id="resultMessage"></div>
 
-<!-- Two buttons for results -->
-<div class="d-flex justify-content-center gap-3 mt-4">
-<button id="viewDiagramBtn" class="view-results diagram-btn" disabled>View Diagrammatic Results</button>
-<button id="viewDescriptiveBtn" class="view-results descriptive-btn" disabled>View Descriptive Results</button>
-</div>
+  <div class="d-flex justify-content-center gap-3 mt-4">
+    <button id="viewDiagramBtn" class="view-results diagram-btn" disabled>View Diagrammatic Results</button>
+    <button id="viewDescriptiveBtn" class="view-results descriptive-btn" disabled>View Descriptive Results</button>
+  </div>
 </div>
 
 <footer>
-© 2025 NetPeek | Designed for precision network analysis
+  © 2025 NetPeek | Designed for precision network analysis
 </footer>
 
+<!-- Original JavaScript logic unchanged -->
 <script>
 const fileInput = document.getElementById('fileInput');
 const uploadBtn = document.getElementById('uploadBtn');
@@ -297,64 +352,50 @@ const resultMessage = document.getElementById('resultMessage');
 const viewDiagramBtn = document.getElementById('viewDiagramBtn');
 const viewDescriptiveBtn = document.getElementById('viewDescriptiveBtn');
 
-let currentFileId = null; // store current file ID
+let currentFileId = null;
 
 uploadBtn.addEventListener('click', () => {
-const file = fileInput.files[0];
-if (!file) {
-alert("Please select a file first!");
-return;
-}
+  const file = fileInput.files[0];
+  if (!file) { alert("Please select a file first!"); return; }
 
-const formData = new FormData();
-formData.append("file", file);
-progressContainer.style.display = "block";
-progressBar.style.width = "0%";
-progressText.innerText = "0%";
-resultMessage.innerText = "";
-viewDiagramBtn.disabled = true;
-viewDescriptiveBtn.disabled = true;
+  const formData = new FormData();
+  formData.append("file", file);
+  progressContainer.style.display = "block";
+  progressBar.style.width = "0%";
+  progressText.innerText = "0%";
+  resultMessage.innerText = "";
+  viewDiagramBtn.disabled = true;
+  viewDescriptiveBtn.disabled = true;
 
-fetch("/upload", { method: "POST", body: formData })
-.then(async response => {
-const data = await response.json();
-progressBar.style.width = "100%";
-progressText.innerText = "100%";
-
-if (response.ok) {
-currentFileId = data.file_id;
-localStorage.setItem("netpeek_file_id", currentFileId);
-
-resultMessage.innerHTML = `<strong>${data.message}</strong><br>Total Packets Parsed: ${data.summary.packets_parsed}`;
-
-// Enable both buttons
-viewDiagramBtn.disabled = false;
-viewDescriptiveBtn.disabled = false;
-} else {
-resultMessage.innerHTML = `Error: ${data.error}`;
-}
-})
-.catch(err => {
-resultMessage.innerHTML = `Error: ${err}`;
-progressBar.style.width = "100%";
-progressText.innerText = "100%";
-});
+  fetch("/upload", { method: "POST", body: formData })
+    .then(async response => {
+      const data = await response.json();
+      progressBar.style.width = "100%";
+      progressText.innerText = "100%";
+      if (response.ok) {
+        currentFileId = data.file_id;
+        localStorage.setItem("netpeek_file_id", currentFileId);
+        resultMessage.innerHTML = `<strong>${data.message}</strong><br>Total Packets Parsed: ${data.summary.packets_parsed}`;
+        viewDiagramBtn.disabled = false;
+        viewDescriptiveBtn.disabled = false;
+      } else {
+        resultMessage.innerHTML = `Error: ${data.error}`;
+      }
+    })
+    .catch(err => {
+      resultMessage.innerHTML = `Error: ${err}`;
+      progressBar.style.width = "100%";
+      progressText.innerText = "100%";
+    });
 });
 
 viewDiagramBtn.addEventListener('click', () => {
-if (currentFileId) {
-window.location.href = `/result.html?file_id=${currentFileId}`;
-} else {
-alert("Please upload and analyze a file first!");
-}
+  if (currentFileId) window.location.href = `/result.html?file_id=${currentFileId}`;
+  else alert("Please upload and analyze a file first!");
 });
-
 viewDescriptiveBtn.addEventListener('click', () => {
-if (currentFileId) {
-window.location.href = `/descriptive_result.html?file_id=${currentFileId}`;
-} else {
-alert("Please upload and analyze a file first!");
-}
+  if (currentFileId) window.location.href = `/descriptive_result.html?file_id=${currentFileId}`;
+  else alert("Please upload and analyze a file first!");
 });
 </script>
 

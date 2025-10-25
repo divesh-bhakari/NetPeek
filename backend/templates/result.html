@@ -3,135 +3,168 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>NetPeek | Results</title>
+<title>NetPeek | Results Dashboard</title>
 
-<!-- Bootstrap -->
+<!-- Bootstrap & Fonts -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-  body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f9fafb;
-    margin: 0;
-    padding: 0;
-    color: #1e293b;
-    font-size: 16px;
-    line-height: 1.6;
-  }
-  .navbar {
-    background: #fff;
-    box-shadow: 0 1px 6px rgb(0 0 0 / 0.1);
-    padding: 1.25rem 3rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .navbar-brand {
-    font-weight: 800;
-    font-size: 1.75rem;
-    color: #0f4c81;
-    letter-spacing: 1px;
-    user-select: none;
-  }
-  .navbar .tagline {
-    font-size: 0.95rem;
-    color: #64748b;
-    font-weight: 500;
-    user-select: none;
-  }
-  .container h1 {
-    text-align: center;
-    margin: 3rem 0 3.5rem;
-    font-weight: 900;
-    font-size: 2.5rem;
-    color: #334155;
-  }
-  .chart-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 3rem;
-    box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
-    transition: transform 0.35s ease, box-shadow 0.35s ease;
-    position: relative;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .chart-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 32px rgb(0 0 0 / 0.14);
-  }
-  .chart-header {
-    background: linear-gradient(90deg, #0f4c81, #10b981);
-    color: #f0f9ff;
-    font-weight: 700;
-    padding: 0.75rem 1.25rem;
-    border-radius: 12px;
-    margin-bottom: 1.25rem;
-    font-size: 1.1rem;
-    text-align: center;
-    letter-spacing: 0.03em;
-    user-select: none;
-  }
-  .chart-container {
-    position: relative;
-    height: 320px;
-  }
-  .center-chart {
-    display: flex;
-    justify-content: center;
-  }
-  /* Responsive adjustments */
-  @media (max-width: 767px) {
-    .chart-container {
-      height: 260px;
-    }
-    .navbar {
-      padding: 1rem 2rem;
-    }
-    .container h1 {
-      font-size: 2rem;
-      margin: 2.5rem 0 3rem;
-    }
-  }
-  .row > [class*='col-'] {
-    margin-bottom: 2.5rem;
-  }
+:root {
+  --primary-color: #0078d7;
+  --secondary-color: #00bfa5;
+  --gradient: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  --dark-text: #1a1a1a;
+  --muted-text: #555;
+  --bg-light: #f7f9fb;
+}
+
+/* Base Styles */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-light);
+  color: var(--dark-text);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Navbar */
+.navbar {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 1rem 3rem;
+}
+.navbar-brand {
+  font-weight: 700;
+  color: var(--primary-color) !important;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+}
+.navbar .tagline {
+  font-size: 0.95rem;
+  color: #6b7280;
+  font-weight: 500;
+  user-select: none;
+}
+
+/* Header */
+.page-header {
+  text-align: center;
+  padding: 3.5rem 1rem 1rem;
+}
+.page-header h1 {
+  font-weight: 700;
+  color: var(--dark-text);
+  font-size: 2.4rem;
+}
+.gradient-bar {
+  height: 5px;
+  width: 160px;
+  background: var(--gradient);
+  border-radius: 3px;
+  margin: 1rem auto 2rem;
+}
+
+/* Chart Cards */
+.chart-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  padding: 2rem 2.5rem;
+  margin-bottom: 2.5rem;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  position: relative;
+}
+.chart-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.chart-header {
+  background: var(--gradient);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.15rem;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.05em;
+}
+
+/* Chart Containers */
+.chart-container {
+  position: relative;
+  height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.center-chart {
+  display: flex;
+  justify-content: center;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  border-top: 1px solid #ddd;
+  padding: 1.2rem;
+  background: #fff;
+  margin-top: 3rem;
+}
+
+/* Responsiveness */
+@media (max-width: 991px) {
+  .chart-container { height: 280px; }
+  .page-header h1 { font-size: 2rem; }
+}
+@media (max-width: 767px) {
+  .navbar { padding: 1rem 2rem; }
+  .chart-container { height: 240px; }
+}
 </style>
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="navbar-brand">NetPeek Packet Analyzer</div>
-  <div class="tagline">Network Analysis Simplified</div>
+  <div class="d-flex w-100 justify-content-between align-items-center">
+    <div class="navbar-brand">NetPeek Packet Analyzer</div>
+    <span class="tagline">Network Analysis Simplified</span>
+  </div>
 </nav>
 
+<div class="page-header">
+  <h1>Analysis Dashboard</h1>
+  <div class="gradient-bar"></div>
+</div>
+
 <div class="container">
-  <h1>Analysis Results</h1>
 
-  <!-- Protocol Pie Chart -->
-  <div class="center-chart">
-    <div class="chart-card">
-      <div class="chart-header">Protocol Distribution</div>
-      <div class="chart-container"><canvas id="protocolChart"></canvas></div>
+  <!-- PIE CHARTS SIDE BY SIDE -->
+  <div class="row">
+    <div class="col-md-6">
+      <div class="chart-card">
+        <div class="chart-header">Protocol Distribution</div>
+        <div class="chart-container"><canvas id="protocolChart"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="chart-card">
+        <div class="chart-header">Top Ports Distribution</div>
+        <div class="chart-container"><canvas id="extraPieChart"></canvas></div>
+      </div>
     </div>
   </div>
 
-  <!-- Top Ports Pie Chart -->
-  <div class="center-chart">
-    <div class="chart-card">
-      <div class="chart-header">Top Ports Distribution</div>
-      <div class="chart-container"><canvas id="extraPieChart"></canvas></div>
-    </div>
-  </div>
-
-  <!-- Bar Charts -->
+  <!-- BAR CHARTS -->
   <div class="row">
     <div class="col-md-6">
       <div class="chart-card">
@@ -145,6 +178,9 @@
         <div class="chart-container"><canvas id="topDstChart"></canvas></div>
       </div>
     </div>
+  </div>
+
+  <div class="row">
     <div class="col-md-6">
       <div class="chart-card">
         <div class="chart-header">Top Ports</div>
@@ -159,148 +195,100 @@
     </div>
   </div>
 
-  <!-- Advanced Charts -->
-  <div class="row">
-    <!-- Packet Length Trend -->
-    <div class="col-md-12">
-      <div class="chart-card">
-        <div class="chart-header">Packet Length Trend</div>
-        <div class="chart-container"><canvas id="packetSizeLine"></canvas></div>
-      </div>
+  <!-- CENTERED LINE CHART -->
+  <div class="center-chart">
+    <div class="chart-card" style="max-width: 900px; width: 100%;">
+      <div class="chart-header">Packet Length Trend</div>
+      <div class="chart-container"><canvas id="packetSizeLine"></canvas></div>
     </div>
+  </div>
 
-    <!-- Protocol Radar centered -->
-    <div class="col-md-12 center-chart">
+  <!-- RADAR & SCATTER SIDE BY SIDE -->
+  <div class="row">
+    <div class="col-md-6">
       <div class="chart-card">
         <div class="chart-header">Protocol Radar</div>
         <div class="chart-container"><canvas id="protocolRadar"></canvas></div>
       </div>
     </div>
-
-    <!-- Packet Size vs Packet # centered -->
-    <div class="col-md-12 center-chart">
+    <div class="col-md-6">
       <div class="chart-card">
         <div class="chart-header">Packet Size vs Packet #</div>
         <div class="chart-container"><canvas id="timeScatter"></canvas></div>
       </div>
     </div>
   </div>
+
 </div>
 
+<footer>
+  © 2025 NetPeek | Designed for precision network analysis
+</footer>
+
+<!-- JavaScript (Unchanged Functionality) -->
 <script>
 async function fetchResults() {
-const urlParams = new URLSearchParams(window.location.search);
-const file_id = urlParams.get('file_id');
-const response = await fetch(`/results?file_id=${file_id}`);
+  const urlParams = new URLSearchParams(window.location.search);
+  const file_id = urlParams.get('file_id');
+  const response = await fetch(`/results?file_id=${file_id}`);
   const data = await response.json();
 
-  // Protocol Pie Chart
+  const pieColors = ['#0078d7','#00bfa5','#f97316','#9333ea','#facc15','#ec4899','#475569'];
+
   new Chart(document.getElementById('protocolChart'), {
     type:'pie',
     data:{
       labels: data.protocols.map(p=>p.protocol),
-      datasets:[{
-        data: data.protocols.map(p=>p.count),
-        backgroundColor: ['#0f4c81','#10b981','#f97316','#facc15','#9333ea','#ec4899','#0284c7']
-      }]
+      datasets:[{ data: data.protocols.map(p=>p.count), backgroundColor: pieColors }]
     },
-    options: {
-      responsive:true,
-      plugins: {
-        legend: { position: 'bottom' }
-      }
-    }
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
   });
 
-  // Top Ports Pie Chart
   new Chart(document.getElementById('extraPieChart'), {
     type:'pie',
     data:{
       labels: data.top_ports.map(p=>p.port),
-      datasets:[{
-        data: data.top_ports.map(p=>p.count),
-        backgroundColor: ['#0f4c81','#10b981','#f97316','#facc15','#9333ea','#ec4899','#0284c7','#795548','#86198f','#475569']
-      }]
+      datasets:[{ data: data.top_ports.map(p=>p.count), backgroundColor: pieColors }]
     },
-    options: {
-      responsive:true,
-      plugins: {
-        legend: { position: 'bottom' }
-      }
-    }
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
   });
 
-  // Bar Charts
   new Chart(document.getElementById('topSrcChart'), {
     type:'bar',
     data:{
       labels: data.top_src_ips.map(ip=>ip.src_ip),
-      datasets:[{
-        label:'Count',
-        data: data.top_src_ips.map(ip=>ip.count),
-        backgroundColor: '#0f4c81'
-      }]
+      datasets:[{ data: data.top_src_ips.map(ip=>ip.count), backgroundColor: '#0078d7' }]
     },
-    options:{
-      responsive:true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
-    }
+    options:{ plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true} } }
   });
 
   new Chart(document.getElementById('topDstChart'), {
     type:'bar',
     data:{
       labels: data.top_dst_ips.map(ip=>ip.dst_ip),
-      datasets:[{
-        label:'Count',
-        data: data.top_dst_ips.map(ip=>ip.count),
-        backgroundColor: '#10b981'
-      }]
+      datasets:[{ data: data.top_dst_ips.map(ip=>ip.count), backgroundColor: '#00bfa5' }]
     },
-    options:{
-      responsive:true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
-    }
+    options:{ plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true} } }
   });
 
   new Chart(document.getElementById('topPortsChart'), {
     type:'bar',
     data:{
       labels: data.top_ports.map(p=>p.port),
-      datasets:[{
-        label:'Count',
-        data: data.top_ports.map(p=>p.count),
-        backgroundColor: '#f97316'
-      }]
+      datasets:[{ data: data.top_ports.map(p=>p.count), backgroundColor: '#f59e0b' }]
     },
-    options:{
-      responsive:true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
-    }
+    options:{ plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true} } }
   });
 
   new Chart(document.getElementById('topPairsChart'), {
     type:'bar',
     data:{
       labels: data.top_pairs.map(p=>p.pair),
-      datasets:[{
-        label:'Count',
-        data: data.top_pairs.map(p=>p.count),
-        backgroundColor: '#facc15'
-      }]
+      datasets:[{ data: data.top_pairs.map(p=>p.count), backgroundColor: '#facc15' }]
     },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
-    }
+    options:{ plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true} } }
   });
 
-  // Line Chart - Packet Length Trend
   new Chart(document.getElementById('packetSizeLine'), {
     type:'line',
     data:{
@@ -308,24 +296,17 @@ const response = await fetch(`/results?file_id=${file_id}`);
       datasets:[{
         label:'Packet Length',
         data: data.all_packets.map(p=>p.length),
-        borderColor: '#0f4c81',
-        backgroundColor: 'rgba(15, 76, 129, 0.2)',
-        fill:true,
-        tension: 0.3,
-        pointRadius: 0
+        borderColor:'#0078d7',
+        backgroundColor:'rgba(0,120,215,0.2)',
+        tension:0.3, fill:true
       }]
     },
     options:{
-      responsive:true,
-      plugins: { legend: { position: 'top' } },
-      scales: {
-        x: { title: { display: true, text: 'Packet #' } },
-        y: { title: { display: true, text: 'Length' }, beginAtZero: true }
-      }
+      plugins:{ legend:{ position:'top' } },
+      scales:{ x:{ title:{display:true,text:'Packet #'} }, y:{ title:{display:true,text:'Length'} } }
     }
   });
 
-  // Radar Chart - Protocol Radar
   new Chart(document.getElementById('protocolRadar'), {
     type:'radar',
     data:{
@@ -333,56 +314,24 @@ const response = await fetch(`/results?file_id=${file_id}`);
       datasets:[{
         label:'Protocol Count',
         data: data.protocols.map(p=>p.count),
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-        fill: true,
-        pointBackgroundColor: '#10b981'
+        borderColor:'#00bfa5',
+        backgroundColor:'rgba(0,191,165,0.25)',
+        pointBackgroundColor:'#00bfa5'
       }]
     },
-    options:{
-      responsive:true,
-      scales: {
-        r: {
-          beginAtZero: true,
-          grid: { color: '#cbd5e1' },
-          angleLines: { color: '#cbd5e1' },
-          pointLabels: { color: '#475569', font: { size: 12 } }
-        }
-      },
-      plugins: {
-        legend: { position: 'top' }
-      }
-    }
+    options:{ plugins:{ legend:{position:'top'} } }
   });
 
-  // Scatter Chart - Packet Size vs Packet #
   new Chart(document.getElementById('timeScatter'), {
     type:'scatter',
-    data:{
-      datasets:[{
-        label:'Packet Size vs Packet #',
-        data: data.all_packets.map((p,i)=>({x:i+1,y:p.length})),
-        backgroundColor: '#ec4899'
-      }]
-    },
+    data:{ datasets:[{ label:'Packet Size vs Packet #', data:data.all_packets.map((p,i)=>({x:i+1,y:p.length})), backgroundColor:'#ec4899' }] },
     options:{
-      responsive:true,
-      scales:{
-        x: {
-          title: { display: true, text: 'Packet #' },
-          beginAtZero: true
-        },
-        y: {
-          title: { display: true, text: 'Packet Size' },
-          beginAtZero: true
-        }
-      },
-      plugins: {
-        legend: { position: 'top' }
-      }
+      plugins:{ legend:{position:'top'} },
+      scales:{ x:{ title:{display:true,text:'Packet #'} }, y:{ title:{display:true,text:'Packet Size'} } }
     }
   });
 }
+
 fetchResults();
 </script>
 
