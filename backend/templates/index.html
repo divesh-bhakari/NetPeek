@@ -1,320 +1,362 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>NetPeek | Packet Analyzer</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>NetPeek | Packet Analyzer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
-  <style>
-    body {
-      background-color: #f5f7fa;
-      color: #222;
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding: 0;
-    }
+<style>
+body {
+background-color: #f5f7fa;
+color: #222;
+font-family: 'Inter', sans-serif;
+margin: 0;
+padding: 0;
+}
 
-    .navbar {
-      background: #ffffff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      padding: 1rem 2rem;
-    }
-    .navbar-brand {
-      font-weight: 700;
-      color: #0078d7 !important;
-      letter-spacing: 0.5px;
-    }
+.navbar {
+background: #ffffff;
+box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+padding: 1rem 2rem;
+}
+.navbar-brand {
+font-weight: 700;
+color: #0078d7 !important;
+letter-spacing: 0.5px;
+}
 
-    .hero {
-      text-align: center;
-      padding: 2.5rem 1rem 1.5rem 1rem;
-    }
-    .hero h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #111;
-    }
-    .hero p {
-      color: #555;
-      font-size: 1.1rem;
-      margin-top: 10px;
-    }
-    .gradient-bar {
-      height: 4px;
-      background: linear-gradient(90deg, #0078d7, #00bfa5);
-      width: 150px;
-      border-radius: 3px;
-      margin: 1rem auto 1.5rem;
-    }
+.auth-buttons {
+display: flex;
+gap: 10px;
+}
 
-    .feature-box {
-      background: #ffffff;
-      padding: 1.75rem 1.25rem;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-      transition: all 0.3s ease;
-      height: 100%;
-    }
-    .feature-box:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
-    }
-    .feature-box h3 {
-      color: #0078d7;
-      margin-bottom: 1rem;
-      font-weight: 600;
-    }
-    .feature-box p {
-      color: #555;
-      font-size: 0.95rem;
-    }
+.btn-login, .btn-register {
+padding: 8px 20px;
+border-radius: 8px;
+font-weight: 600;
+text-decoration: none;
+transition: 0.3s;
+font-size: 0.95rem;
+}
 
-    .upload-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 1.75rem 3.5rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      max-width: 700px;
-      margin: 2.5rem auto;
-      text-align: center;
-    }
+.btn-login {
+background: transparent;
+color: #0078d7;
+border: 2px solid #0078d7;
+}
 
-    input[type="file"] { display: none; }
+.btn-login:hover {
+background: #0078d7;
+color: white;
+}
 
-    label {
-      background: linear-gradient(45deg, #0078d7, #00bfa5);
-      color: white;
-      padding: 10px 25px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.3s;
-      display: inline-block;
-      margin-bottom: 1rem;
-    }
-    label:hover { opacity: 0.9; }
+.btn-register {
+background: linear-gradient(45deg, #0078d7, #00bfa5);
+color: white;
+border: none;
+}
 
-    .btn-scan {
-      background: linear-gradient(45deg, #0078d7, #00bfa5);
-      border: none;
-      color: white;
-      font-weight: 600;
-      padding: 10px 30px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: 0.3s;
-    }
-    .btn-scan:hover {
-      transform: scale(1.05);
-      opacity: 0.95;
-      box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
-    }
+.btn-register:hover {
+opacity: 0.9;
+transform: scale(1.05);
+}
 
-    #progressContainer {
-      width: 100%;
-      height: 10px;
-      background: #e9ecef;
-      border-radius: 5px;
-      overflow: hidden;
-      margin-top: 20px;
-      display: none;
-    }
+.hero {
+text-align: center;
+padding: 2.5rem 1rem 1.5rem 1rem;
+}
+.hero h1 {
+font-size: 2.5rem;
+font-weight: 700;
+color: #111;
+}
+.hero p {
+color: #555;
+font-size: 1.1rem;
+margin-top: 10px;
+}
+.gradient-bar {
+height: 4px;
+background: linear-gradient(90deg, #0078d7, #00bfa5);
+width: 150px;
+border-radius: 3px;
+margin: 1rem auto 1.5rem;
+}
 
-    #progressBar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #0078d7, #00bfa5);
-      transition: width 0.4s;
-    }
+.feature-box {
+background: #ffffff;
+padding: 1.75rem 1.25rem;
+border-radius: 12px;
+text-align: center;
+box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+transition: all 0.3s ease;
+height: 100%;
+}
+.feature-box:hover {
+transform: translateY(-4px);
+box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+}
+.feature-box h3 {
+color: #0078d7;
+margin-bottom: 1rem;
+font-weight: 600;
+}
+.feature-box p {
+color: #555;
+font-size: 0.95rem;
+}
 
-    #progressText {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #333;
-    }
+.upload-card {
+background: #ffffff;
+border-radius: 16px;
+padding: 1.75rem 3.5rem;
+box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+max-width: 700px;
+margin: 2.5rem auto;
+text-align: center;
+}
 
-    #resultMessage {
-      margin-top: 20px;
-      font-weight: 500;
-      color: #333;
-    }
+input[type="file"] { display: none; }
 
-    .view-results {
-      margin-top: 20px;
-      border: none;
-      color: white;
-      padding: 10px 25px;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: 0.3s;
-      cursor: pointer;
-    }
-    .view-results:hover {
-      transform: scale(1.05);
-      opacity: 0.95;
-      box-shadow: 0 0 15px rgba(22, 163, 74, 0.3);
-    }
+label {
+background: linear-gradient(45deg, #0078d7, #00bfa5);
+color: white;
+padding: 10px 25px;
+border-radius: 8px;
+cursor: pointer;
+font-weight: 600;
+transition: 0.3s;
+display: inline-block;
+margin-bottom: 1rem;
+}
+label:hover { opacity: 0.9; }
 
-    footer {
-      text-align: center;
-      font-size: 0.85rem;
-      color: #888;
-      padding: 1rem;
-      border-top: 1px solid #eee;
-      background: #fff;
-      margin-top: 3rem;
-    }
+.btn-scan {
+background: linear-gradient(45deg, #0078d7, #00bfa5);
+border: none;
+color: white;
+font-weight: 600;
+padding: 10px 30px;
+border-radius: 8px;
+cursor: pointer;
+margin-top: 10px;
+transition: 0.3s;
+}
+.btn-scan:hover {
+transform: scale(1.05);
+opacity: 0.95;
+box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+}
 
-    /* Descriptive button color */
-    .descriptive-btn {
-      background: linear-gradient(45deg, #f59e0b, #d97706);
-    }
+#progressContainer {
+width: 100%;
+height: 10px;
+background: #e9ecef;
+border-radius: 5px;
+overflow: hidden;
+margin-top: 20px;
+display: none;
+}
 
-    .diagram-btn {
-      background: linear-gradient(45deg, #22c55e, #16a34a);
-    }
-  </style>
+#progressBar {
+height: 100%;
+width: 0%;
+background: linear-gradient(90deg, #0078d7, #00bfa5);
+transition: width 0.4s;
+}
+
+#progressText {
+margin-top: 10px;
+font-size: 14px;
+color: #333;
+}
+
+#resultMessage {
+margin-top: 20px;
+font-weight: 500;
+color: #333;
+}
+
+.view-results {
+margin-top: 20px;
+border: none;
+color: white;
+padding: 10px 25px;
+border-radius: 8px;
+font-weight: 600;
+transition: 0.3s;
+cursor: pointer;
+}
+.view-results:hover {
+transform: scale(1.05);
+opacity: 0.95;
+box-shadow: 0 0 15px rgba(22, 163, 74, 0.3);
+}
+
+footer {
+text-align: center;
+font-size: 0.85rem;
+color: #888;
+padding: 1rem;
+border-top: 1px solid #eee;
+background: #fff;
+margin-top: 3rem;
+}
+
+/* Descriptive button color */
+.descriptive-btn {
+background: linear-gradient(45deg, #f59e0b, #d97706);
+}
+
+.diagram-btn {
+background: linear-gradient(45deg, #22c55e, #16a34a);
+}
+</style>
 </head>
 
 <body>
 
-  <nav class="navbar navbar-light">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-      <a class="navbar-brand">NetPeek Packet Analyzer</a>
-      <span class="text-muted small">Network Analysis Simplified</span>
-    </div>
-  </nav>
+<nav class="navbar navbar-light">
+<div class="container-fluid d-flex justify-content-between align-items-center">
+<a class="navbar-brand">NetPeek Packet Analyzer</a>
+<div class="d-flex align-items-center gap-4">
+<span class="text-muted small">Network Analysis Simplified</span>
+<div class="auth-buttons">
+<a href="login.html" class="btn-login">Login</a>
+<a href="registration.html" class="btn-register">Register</a>
+</div>
+</div>
+</div>
+</nav>
 
-  <div class="hero">
-    <h1>Upload Your PCAP File</h1>
-    <p>Analyze captured network traffic and visualize data efficiently.</p>
-    <div class="gradient-bar"></div>
-  </div>
+<div class="hero">
+<h1>Upload Your PCAP File</h1>
+<p>Analyze captured network traffic and visualize data efficiently.</p>
+<div class="gradient-bar"></div>
+</div>
 
-  <div class="container my-5">
-    <div class="row g-4">
-      <div class="col-md-4">
-        <div class="feature-box">
-          <h3>Packet Breakdown</h3>
-          <p>Get insights on protocols, source/destination IPs, and data flow structure.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-box">
-          <h3>Traffic Summary</h3>
-          <p>View total packets, average packet size, and connection statistics.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-box">
-          <h3>Protocol Insights</h3>
-          <p>Analyze TCP, UDP, ICMP, HTTP, DNS, and other protocol distributions.</p>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="container my-5">
+<div class="row g-4">
+<div class="col-md-4">
+<div class="feature-box">
+<h3>Packet Breakdown</h3>
+<p>Get insights on protocols, source/destination IPs, and data flow structure.</p>
+</div>
+</div>
+<div class="col-md-4">
+<div class="feature-box">
+<h3>Traffic Summary</h3>
+<p>View total packets, average packet size, and connection statistics.</p>
+</div>
+</div>
+<div class="col-md-4">
+<div class="feature-box">
+<h3>Protocol Insights</h3>
+<p>Analyze TCP, UDP, ICMP, HTTP, DNS, and other protocol distributions.</p>
+</div>
+</div>
+</div>
+</div>
 
-  <div class="upload-card">
-    <h2 class="mb-3" style="color:#0078d7; font-weight:600;">Start Analysis</h2>
-    <p class="mb-4" style="color:#555;">Upload your PCAP or PCAPNG file below and begin analysis.</p>
+<div class="upload-card">
+<h2 class="mb-3" style="color:#0078d7; font-weight:600;">Start Analysis</h2>
+<p class="mb-4" style="color:#555;">Upload your PCAP or PCAPNG file below and begin analysis.</p>
 
-    <input type="file" id="fileInput" accept=".pcap,.pcapng">
-    <label for="fileInput">Choose File</label><br>
-    <button id="uploadBtn" class="btn-scan">Start Scan</button>
+<input type="file" id="fileInput" accept=".pcap,.pcapng">
+<label for="fileInput">Choose File</label><br>
+<button id="uploadBtn" class="btn-scan">Start Scan</button>
 
-    <div id="progressContainer">
-      <div id="progressBar"></div>
-    </div>
-    <div id="progressText"></div>
-    <div id="resultMessage"></div>
+<div id="progressContainer">
+<div id="progressBar"></div>
+</div>
+<div id="progressText"></div>
+<div id="resultMessage"></div>
 
-    <!-- Two buttons for results -->
-    <div class="d-flex justify-content-center gap-3 mt-4">
-      <button id="viewDiagramBtn" class="view-results diagram-btn" disabled>View Diagrammatic Results</button>
-      <button id="viewDescriptiveBtn" class="view-results descriptive-btn" disabled>View Descriptive Results</button>
-    </div>
-  </div>
+<!-- Two buttons for results -->
+<div class="d-flex justify-content-center gap-3 mt-4">
+<button id="viewDiagramBtn" class="view-results diagram-btn" disabled>View Diagrammatic Results</button>
+<button id="viewDescriptiveBtn" class="view-results descriptive-btn" disabled>View Descriptive Results</button>
+</div>
+</div>
 
-  <footer>
-    © 2025 NetPeek | Designed for precision network analysis
-  </footer>
+<footer>
+© 2025 NetPeek | Designed for precision network analysis
+</footer>
 
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const progressContainer = document.getElementById('progressContainer');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    const resultMessage = document.getElementById('resultMessage');
-    const viewDiagramBtn = document.getElementById('viewDiagramBtn');
-    const viewDescriptiveBtn = document.getElementById('viewDescriptiveBtn');
+<script>
+const fileInput = document.getElementById('fileInput');
+const uploadBtn = document.getElementById('uploadBtn');
+const progressContainer = document.getElementById('progressContainer');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+const resultMessage = document.getElementById('resultMessage');
+const viewDiagramBtn = document.getElementById('viewDiagramBtn');
+const viewDescriptiveBtn = document.getElementById('viewDescriptiveBtn');
 
-    let currentFileId = null; // store current file ID
+let currentFileId = null; // store current file ID
 
-    uploadBtn.addEventListener('click', () => {
-      const file = fileInput.files[0];
-      if (!file) {
-        alert("Please select a file first!");
-        return;
-      }
+uploadBtn.addEventListener('click', () => {
+const file = fileInput.files[0];
+if (!file) {
+alert("Please select a file first!");
+return;
+}
 
-      const formData = new FormData();
-      formData.append("file", file);
-      progressContainer.style.display = "block";
-      progressBar.style.width = "0%";
-      progressText.innerText = "0%";
-      resultMessage.innerText = "";
-      viewDiagramBtn.disabled = true;
-      viewDescriptiveBtn.disabled = true;
+const formData = new FormData();
+formData.append("file", file);
+progressContainer.style.display = "block";
+progressBar.style.width = "0%";
+progressText.innerText = "0%";
+resultMessage.innerText = "";
+viewDiagramBtn.disabled = true;
+viewDescriptiveBtn.disabled = true;
 
-      fetch("/upload", { method: "POST", body: formData })
-        .then(async response => {
-          const data = await response.json();
-          progressBar.style.width = "100%";
-          progressText.innerText = "100%";
+fetch("/upload", { method: "POST", body: formData })
+.then(async response => {
+const data = await response.json();
+progressBar.style.width = "100%";
+progressText.innerText = "100%";
 
-          if (response.ok) {
-            currentFileId = data.file_id;
-            localStorage.setItem("netpeek_file_id", currentFileId);
+if (response.ok) {
+currentFileId = data.file_id;
+localStorage.setItem("netpeek_file_id", currentFileId);
 
-            resultMessage.innerHTML = `<strong>${data.message}</strong><br>Total Packets Parsed: ${data.summary.packets_parsed}`;
+resultMessage.innerHTML = `<strong>${data.message}</strong><br>Total Packets Parsed: ${data.summary.packets_parsed}`;
 
-            // Enable both buttons
-            viewDiagramBtn.disabled = false;
-            viewDescriptiveBtn.disabled = false;
-          } else {
-            resultMessage.innerHTML = `Error: ${data.error}`;
-          }
-        })
-        .catch(err => {
-          resultMessage.innerHTML = `Error: ${err}`;
-          progressBar.style.width = "100%";
-          progressText.innerText = "100%";
-        });
-    });
+// Enable both buttons
+viewDiagramBtn.disabled = false;
+viewDescriptiveBtn.disabled = false;
+} else {
+resultMessage.innerHTML = `Error: ${data.error}`;
+}
+})
+.catch(err => {
+resultMessage.innerHTML = `Error: ${err}`;
+progressBar.style.width = "100%";
+progressText.innerText = "100%";
+});
+});
 
-    viewDiagramBtn.addEventListener('click', () => {
-      if (currentFileId) {
-        window.location.href = `/result.html?file_id=${currentFileId}`;
-      } else {
-        alert("Please upload and analyze a file first!");
-      }
-    });
+viewDiagramBtn.addEventListener('click', () => {
+if (currentFileId) {
+window.location.href = `/result.html?file_id=${currentFileId}`;
+} else {
+alert("Please upload and analyze a file first!");
+}
+});
 
-    viewDescriptiveBtn.addEventListener('click', () => {
-      if (currentFileId) {
-        window.location.href = `/descriptive_result.html?file_id=${currentFileId}`;
-      } else {
-        alert("Please upload and analyze a file first!");
-      }
-    });
-  </script>
+viewDescriptiveBtn.addEventListener('click', () => {
+if (currentFileId) {
+window.location.href = `/descriptive_result.html?file_id=${currentFileId}`;
+} else {
+alert("Please upload and analyze a file first!");
+}
+});
+</script>
 
 </body>
 </html>

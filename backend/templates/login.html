@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login | NetPeek</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+background: linear-gradient(135deg, #0078d7 0%, #00bfa5 100%);
+color: #222;
+font-family: 'Inter', sans-serif;
+margin: 0;
+padding: 0;
+min-height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.login-container {
+background: #ffffff;
+border-radius: 16px;
+padding: 3rem 2.5rem;
+box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+max-width: 450px;
+width: 100%;
+margin: 2rem;
+}
+
+.logo-section {
+text-align: center;
+margin-bottom: 2rem;
+}
+
+.logo-section h1 {
+font-size: 2rem;
+font-weight: 700;
+color: #0078d7;
+margin-bottom: 0.5rem;
+}
+
+.logo-section p {
+color: #666;
+font-size: 0.95rem;
+}
+
+.form-group {
+margin-bottom: 1.5rem;
+}
+
+.form-label {
+font-weight: 600;
+color: #333;
+margin-bottom: 0.5rem;
+font-size: 0.9rem;
+}
+
+.form-control {
+padding: 0.75rem 1rem;
+border: 2px solid #e0e0e0;
+border-radius: 8px;
+font-size: 1rem;
+transition: all 0.3s;
+}
+
+.form-control:focus {
+border-color: #0078d7;
+box-shadow: 0 0 0 3px rgba(0, 120, 215, 0.1);
+outline: none;
+}
+
+.btn-login {
+width: 100%;
+background: linear-gradient(45deg, #0078d7, #00bfa5);
+color: white;
+border: none;
+padding: 0.85rem;
+border-radius: 8px;
+font-weight: 600;
+font-size: 1rem;
+cursor: pointer;
+transition: all 0.3s;
+margin-top: 1rem;
+}
+
+.btn-login:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(0, 120, 215, 0.3);
+opacity: 0.95;
+}
+
+.divider {
+text-align: center;
+margin: 1.5rem 0;
+color: #999;
+font-size: 0.9rem;
+position: relative;
+}
+
+.divider::before,
+.divider::after {
+content: "";
+position: absolute;
+top: 50%;
+width: 42%;
+height: 1px;
+background: #e0e0e0;
+}
+
+.divider::before {
+left: 0;
+}
+
+.divider::after {
+right: 0;
+}
+
+.register-link {
+text-align: center;
+margin-top: 1.5rem;
+color: #666;
+font-size: 0.95rem;
+}
+
+.register-link a {
+color: #0078d7;
+text-decoration: none;
+font-weight: 600;
+}
+
+.register-link a:hover {
+text-decoration: underline;
+}
+
+.back-home {
+text-align: center;
+margin-top: 1rem;
+}
+
+.back-home a {
+color: #666;
+text-decoration: none;
+font-size: 0.9rem;
+transition: color 0.3s;
+}
+
+.back-home a:hover {
+color: #0078d7;
+}
+
+.forgot-password {
+text-align: right;
+margin-top: 0.5rem;
+}
+
+.forgot-password a {
+color: #0078d7;
+text-decoration: none;
+font-size: 0.85rem;
+}
+
+.forgot-password a:hover {
+text-decoration: underline;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-container">
+<div class="logo-section">
+<h1>NetPeek</h1>
+<p>Login to your account</p>
+</div>
+
+<form id="loginForm">
+<div class="form-group">
+<label class="form-label" for="email">Email Address</label>
+<input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+</div>
+
+<div class="form-group">
+<label class="form-label" for="password">Password</label>
+<input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+<div class="forgot-password">
+<a href="#">Forgot Password?</a>
+</div>
+</div>
+
+<button type="submit" class="btn-login">Login</button>
+
+<div class="divider">or</div>
+
+<div class="register-link">
+Don't have an account? <a href="registration.html">Register Now</a>
+</div>
+
+<div class="back-home">
+<a href="index.html">← Back to Home</a>
+</div>
+</form>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+e.preventDefault();
+const email = document.getElementById('email').value;
+const password = document.getElementById('password').value;
+
+// Basic validation
+if (email && password) {
+alert('Login functionality will be implemented with backend integration.');
+// Here you would typically send data to your backend
+// For now, redirect to home page
+// window.location.href = 'index.html';
+} else {
+alert('Please fill in all fields');
+}
+});
+</script>
+
+</body>
+</html>
